@@ -16,7 +16,7 @@ function App() {
       <Routes>
         <Route path={RouteNames.HOME} element={<Home />} />
         <Route path={RouteNames.USLUGE} element={<UslugePregled />} />
-      </Routes>
+      </Routes> 
       <hr />
       
     </Container>
