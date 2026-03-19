@@ -2,7 +2,7 @@ export const usluge = [
     {
         sifra: 1,
         naziv: 'Mali servis (ulje i filteri)',
-        trajanje: 90, // u minutama
+        trajanje: 90,
         cijena: 150.00,
         aktivan: true,
         datumPokretanja: '2024-01-10'
@@ -36,7 +36,7 @@ export const usluge = [
         naziv: 'Punjenje i dezinfekcija klime',
         trajanje: 60,
         cijena: 65.00,
-        aktivan: false, // Sezonska usluga, trenutno isključena
+        aktivan: false, 
         datumPokretanja: '2023-05-10'
     }
 ];
