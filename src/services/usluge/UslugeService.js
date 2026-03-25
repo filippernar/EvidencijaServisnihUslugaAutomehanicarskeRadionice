@@ -10,7 +10,7 @@ async function dodaj(usluga){
     if(usluge.length>0){
         usluga.sifra = usluge[usluge.length - 1].sifra + 1
     }else{
-        smjer.sifra = 1
+        usluga.sifra = 1
     }
     
     usluge.push(usluga);
