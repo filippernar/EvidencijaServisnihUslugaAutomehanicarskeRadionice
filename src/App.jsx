@@ -6,6 +6,7 @@ import { Route, Routes } from 'react-router-dom'
 import { RouteNames } from './constants'
 import Home from './pages/Home'
 import UslugePregled from './pages/usluge/UslugePregled'
+import UslugaNova from './pages/usluge/UslugaNova'
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path={RouteNames.HOME} element={<Home />} />
         <Route path={RouteNames.USLUGE} element={<UslugePregled />} />
+        <Route path={RouteNames.USLUGA_NOVA} element={<UslugaNova />} />
       </Routes> 
       <hr />
       

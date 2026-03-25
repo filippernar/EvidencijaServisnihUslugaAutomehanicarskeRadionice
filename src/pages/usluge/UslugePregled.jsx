@@ -4,6 +4,8 @@ import { Table } from "react-bootstrap"
 import { NumericFormat } from "react-number-format"
 import { GrValidate } from "react-icons/gr"
 import FormatDatuma from "../../components/FormatDatuma"
+import { RouteNames } from "../../constants"
+import { Link } from 'react-router-dom';
 
 export default function UslugePregled(){
 
@@ -24,6 +26,10 @@ export default function UslugePregled(){
 
     return(
         <>
+            <Link to={RouteNames.USLUGA_NOVA}
+            className="btn btn-success w-100 mb-3 mt-3">
+                Dodavanje nove usluge
+            </Link>
             <Table>
                 <thead>
                     <tr>
