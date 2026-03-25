@@ -42,13 +42,13 @@ export default function UslugePregled(){
                     </tr>
                 </thead>
                 <tbody>
-                    {usluge && usluge.map((usluge)=>(
-                        <tr>     
-                            <td>{usluge.naziv}</td>
-                            <td>{usluge.trajanje}</td>
+                    {usluge && usluge.map((usluga)=>(
+                        <tr key={usluga.sifra}>     
+                            <td>{usluga.naziv}</td>
+                            <td>{usluga.trajanje}</td>
                             <td>
                                 <NumericFormat 
-                                value={usluge.cijena}
+                                value={usluga.cijena}
                                 displayType={'text'}
                                 thousandSeparator='.'
                                 decimalSeparator=','
@@ -58,13 +58,13 @@ export default function UslugePregled(){
                                 />
                             </td>
                             <td>
-                                <FormatDatuma datum={usluge.datumPokretanja} />
+                                <FormatDatuma datum={usluga.datumPokretanja} />
 
                             </td>
                             <td>
                                 <GrValidate 
                                 size={25}
-                                color={usluge.aktivan ? 'green' : 'red'}
+                                color={usluga.aktivan ? 'green' : 'red'}
                                 />
                             </td>
                             <td></td>
