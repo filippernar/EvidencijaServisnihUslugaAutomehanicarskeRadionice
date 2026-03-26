@@ -31,7 +31,7 @@ export default function UslugePregled(){
             className="btn btn-success w-100 mb-3 mt-3">
                 Dodavanje nove usluge
             </Link>
-            <Table>
+            <Table striped bordered hover>
                 <thead>
                     <tr>
                         <th>Naziv</th>
