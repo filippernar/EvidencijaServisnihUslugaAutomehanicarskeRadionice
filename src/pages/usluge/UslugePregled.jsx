@@ -34,7 +34,7 @@ export default function UslugePregled(){
             <Table striped bordered hover>
                 <thead>
                     <tr>
-                        <th>Naziv</th>
+                        <th>Naziv</th>              
                         <th>Trajanje</th>
                         <th>Cijena</th>
                         <th>Datum pokretanja</th>

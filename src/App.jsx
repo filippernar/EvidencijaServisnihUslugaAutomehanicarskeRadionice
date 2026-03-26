@@ -22,7 +22,7 @@ function App() {
         <Route path={RouteNames.USLUGA_PROMJENA} element={<UslugaPromjena/>} />
       </Routes> 
       <hr />
-      
+      ⚡️Powered by: EvidencijaServisnihUslugaAutomehanicarskeRadionice 🔧
     </Container>
   )
 }

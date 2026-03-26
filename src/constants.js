@@ -1,4 +1,4 @@
-export const IME_APLIKACIJE='Evidencija servisnih usluga automehaničarske radionice'
+export const IME_APLIKACIJE='AutoLog'
 
 export const RouteNames = {
     HOME: '/',
