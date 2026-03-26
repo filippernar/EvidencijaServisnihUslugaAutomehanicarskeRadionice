@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react"
 import UslugeService from "../../services/usluge/UslugeService"
-import { Table } from "react-bootstrap"
+import { Button, Table } from "react-bootstrap"
 import { NumericFormat } from "react-number-format"
 import { GrValidate } from "react-icons/gr"
 import FormatDatuma from "../../components/FormatDatuma"
 import { RouteNames } from "../../constants"
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function UslugePregled(){
 
 
     const [usluge, setUsluge] = useState([])
+    const navigate = useNavigate();
 
 
     useEffect(()=>{
@@ -67,7 +68,11 @@ export default function UslugePregled(){
                                 color={usluga.aktivan ? 'green' : 'red'}
                                 />
                             </td>
-                            <td></td>
+                            <td>
+                                <Button onClick={()=>{navigate(`/usluge/${usluga.sifra}`)}}>
+                                    Promjena
+                                </Button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
