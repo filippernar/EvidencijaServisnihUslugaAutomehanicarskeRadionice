@@ -3,5 +3,6 @@ export const IME_APLIKACIJE='Evidencija servisnih usluga automehaničarske radio
 export const RouteNames = {
     HOME: '/',
     USLUGE: '/usluge', 
-    USLUGA_NOVA: '/usluga/nova'
+    USLUGA_NOVA: '/usluga/nova',
+    USLUGA_PROMJENA: '/usluge/:sifra'
 }

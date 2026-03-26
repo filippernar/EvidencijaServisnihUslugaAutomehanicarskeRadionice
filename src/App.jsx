@@ -7,6 +7,7 @@ import { RouteNames } from './constants'
 import Home from './pages/Home'
 import UslugePregled from './pages/usluge/UslugePregled'
 import UslugaNova from './pages/usluge/UslugaNova'
+import UslugaPromjena from './pages/usluge/UslugaPromjena'
 
 function App() {
 
@@ -18,6 +19,7 @@ function App() {
         <Route path={RouteNames.HOME} element={<Home />} />
         <Route path={RouteNames.USLUGE} element={<UslugePregled />} />
         <Route path={RouteNames.USLUGA_NOVA} element={<UslugaNova />} />
+        <Route path={RouteNames.USLUGA_PROMJENA} element={<UslugaPromjena/>} />
       </Routes> 
       <hr />
       

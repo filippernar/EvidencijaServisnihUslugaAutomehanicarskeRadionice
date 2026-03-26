@@ -2,9 +2,13 @@ import { usluge } from "./UslugePodaci";
 
 
 async function get() {
-    return {data: usluge}
+    return {data: [...usluge]}
 }
 
+
+async function getBySifra(sifra) {
+   return {data: usluge.find(s => s.sifra === parseInt(sifra))} 
+}
 
 async function dodaj(usluga){
     if(usluge.length>0){
@@ -16,8 +20,20 @@ async function dodaj(usluga){
     usluge.push(usluga);
 }
 
+async function promjeni(sifra,usluga) {
+    const index = nadiIndex(sifra)
+    usluge[index] = {...usluge[index], ...usluga}
+}
+
+function nadiIndex(sifra){
+    return usluge.findIndex(s => s.sifra === parseInt(sifra))
+}
+
+
 
 export default{
     get,
-    dodaj
+    dodaj,
+    getBySifra,
+    promjeni
 }
