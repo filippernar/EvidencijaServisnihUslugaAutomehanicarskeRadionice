@@ -6,3 +6,7 @@ export const RouteNames = {
     USLUGA_NOVA: '/usluga/nova',
     USLUGA_PROMJENA: '/usluge/:sifra'
 }
+
+
+// memorija, localStorage, firebase
+export const DATA_SOURCE = 'localStorage';

@@ -20,6 +20,12 @@ export default function UslugePregled(){
 
     async function ucitajUsluge() {
         await UslugeService.get().then((odgovor)=>{
+
+            if(!odgovor.success){
+                alert('Nije implementiran servis')
+                return
+            }
+
             setUsluge(odgovor.data)
         })
     }

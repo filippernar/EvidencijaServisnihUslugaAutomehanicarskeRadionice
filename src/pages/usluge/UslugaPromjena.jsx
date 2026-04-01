@@ -14,6 +14,11 @@ export default function UslugaPromjena(){
 
     async function ucitajUsluga() {
         await UslugeService.getBySifra(params.sifra).then((odgovor)=>{
+
+            if(!odgovor.success){
+                alert('Nije implementiran servis')
+                return
+            }
             
             const s = odgovor.data
             
