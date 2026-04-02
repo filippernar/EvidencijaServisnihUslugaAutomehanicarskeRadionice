@@ -4,7 +4,11 @@ export const RouteNames = {
     HOME: '/',
     USLUGE: '/usluge', 
     USLUGA_NOVA: '/usluga/nova',
-    USLUGA_PROMJENA: '/usluge/:sifra'
+    USLUGA_PROMJENA: '/usluge/:sifra',
+
+    VOZILA: '/vozila',
+    VOZILA_NOVI: '/vozila/novi',
+    VOZILA_PROMJENA: '/vozila/:sifra',
 }
 
 

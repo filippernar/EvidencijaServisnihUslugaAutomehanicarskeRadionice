@@ -8,7 +8,9 @@ import Home from './pages/Home'
 import UslugePregled from './pages/usluge/UslugePregled'
 import UslugaNova from './pages/usluge/UslugaNova'
 import UslugaPromjena from './pages/usluge/UslugaPromjena'
-
+import VoziloPregled from './pages/vozilo/VoziloPregled'
+import VoziloNovo from './pages/vozilo/VoziloNovo'
+import VoziloPromjena from './pages/vozilo/VoziloPromjena'
 function App() {
 
 
@@ -20,6 +22,10 @@ function App() {
         <Route path={RouteNames.USLUGE} element={<UslugePregled />} />
         <Route path={RouteNames.USLUGA_NOVA} element={<UslugaNova />} />
         <Route path={RouteNames.USLUGA_PROMJENA} element={<UslugaPromjena/>} />
+
+        <Route path={RouteNames.VOZILA} element={<VoziloPregled />} />
+        <Route path={RouteNames.VOZILA_NOVI} element={<VoziloNovo />} />
+        <Route path={RouteNames.VOZILA_PROMJENA} element={<VoziloPromjena />} />
       </Routes> 
       <hr />
       ⚡️Powered by: EvidencijaServisnihUslugaAutomehanicarskeRadionice 🔧
