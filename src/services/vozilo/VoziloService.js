@@ -1,4 +1,3 @@
-
 import VoziloServiceLocalStorage from "./VoziloServiceLocalStorage";
 import VoziloServiceMemorija from "./VoziloServiceMemorija";
 import { DATA_SOURCE } from "../../constants";

@@ -2,12 +2,12 @@ import { usluge } from "./UslugePodaci";
 
 
 async function get() {
-    return {data: [...usluge]}
+    return {success: true, data: [...usluge]}
 }
 
 
 async function getBySifra(sifra) {
-   return {data: usluge.find(s => s.sifra === parseInt(sifra))} 
+   return {success: true, data: usluge.find(s => s.sifra === parseInt(sifra))} 
 }
 
 async function dodaj(usluga){
