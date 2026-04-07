@@ -29,6 +29,12 @@ export default function Izbornik() {
 >
     Vozila
 </NavDropdown.Item>
+
+<NavDropdown.Item
+    onClick={() => navigate(RouteNames.NALOZI)}
+>
+    Nalozi
+</NavDropdown.Item>
                             
                         </NavDropdown>
                     </Nav>

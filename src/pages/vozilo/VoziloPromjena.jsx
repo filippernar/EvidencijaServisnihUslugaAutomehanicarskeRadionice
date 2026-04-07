@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import VoziloService from "../../services/vozilo/VoziloService"
-import { Button, Col, Form, Row, Container } from "react-bootstrap"
+import { Button, Col, Form, Row, Container, Card } from "react-bootstrap"
 import { RouteNames } from "../../constants"
 
 export default function VoziloPromjena(){
@@ -56,7 +56,6 @@ export default function VoziloPromjena(){
         })
     }
 
-    // --- KLJUČNI DIO: Ako podaci još nisu učitani, vrati poruku učitavanja ---
     if (!vozilo) {
         return (
             <Container className="text-center mt-5">
@@ -69,48 +68,69 @@ export default function VoziloPromjena(){
          <>
             <h3>Promjena vozila</h3>
             <Form onSubmit={odradiSubmit}>
-                <Form.Group controlId="registracija">
-                    <Form.Label>Registracija</Form.Label>
-                    <Form.Control type="text" name="registracija" required 
-                    defaultValue={vozilo.registracija}/>
-                </Form.Group>
+                <Container className="mt-4">
+                    <Card className="shadow-sm">
+                        <Card.Body>
+                            <Card.Title className="mb-4">Podaci o vozilu: {vozilo.registracija}</Card.Title>
+                            
+                            <Row>
+                                <Col xs={12}>
+                                    <Form.Group controlId="registracija" className="mb-3">
+                                        <Form.Label className="fw-bold">Registracija</Form.Label>
+                                        <Form.Control type="text" name="registracija" required 
+                                        defaultValue={vozilo.registracija}/>
+                                    </Form.Group>
+                                </Col>
+                            </Row>
 
-                <Form.Group controlId="marka">
-                    <Form.Label>Marka</Form.Label>
-                    <Form.Control type="text" name="marka" required 
-                    defaultValue={vozilo.marka}/>
-                </Form.Group>
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Group controlId="marka" className="mb-3">
+                                        <Form.Label className="fw-bold">Marka</Form.Label>
+                                        <Form.Control type="text" name="marka" required 
+                                        defaultValue={vozilo.marka}/>
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group controlId="model" className="mb-3">
+                                        <Form.Label className="fw-bold">Model</Form.Label>
+                                        <Form.Control type="text" name="model" required 
+                                        defaultValue={vozilo.model}/>
+                                    </Form.Group>
+                                </Col>
+                            </Row>
 
-                <Form.Group controlId="model">
-                    <Form.Label>Model</Form.Label>
-                    <Form.Control type="text" name="model" required 
-                    defaultValue={vozilo.model}/>
-                </Form.Group>
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Group controlId="godiste" className="mb-3">
+                                        <Form.Label className="fw-bold">Godište</Form.Label>
+                                        <Form.Control type="number" name="godiste" required 
+                                        defaultValue={vozilo.godiste}/>
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group controlId="prijedeniKilometri" className="mb-3">
+                                        <Form.Label className="fw-bold">Prijeđeni kilometri</Form.Label>
+                                        <Form.Control type="number" name="prijedeniKilometri" required 
+                                        defaultValue={vozilo.prijedeniKilometri}/>
+                                    </Form.Group>
+                                </Col>
+                            </Row>
 
-                <Form.Group controlId="godiste">
-                    <Form.Label>Godište</Form.Label>
-                    <Form.Control type="number" name="godiste" required 
-                    defaultValue={vozilo.godiste}/>
-                </Form.Group>
+                            <hr />
 
-                <Form.Group controlId="prijedeniKilometri">
-                    <Form.Label>Prijeđeni kilometri</Form.Label>
-                    <Form.Control type="number" name="prijedeniKilometri" required 
-                    defaultValue={vozilo.prijedeniKilometri}/>
-                </Form.Group>
-
-                <Row className="mt-4">
-                    <Col>
-                        <Link to={RouteNames.VOZILA} className="btn btn-danger w-100">
-                            Odustani
-                        </Link>
-                    </Col>
-                    <Col>
-                        <Button type="submit" variant="success" className="w-100">
-                            Promjeni vozilo
-                        </Button>
-                    </Col>
-                </Row>
+                            {/* Gumbi posloženi desno kao u Uslugama */}
+                            <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <Link to={RouteNames.VOZILA} className="btn btn-danger px-4">
+                                    Odustani
+                                </Link>
+                                <Button type="submit" variant="success" className="px-4">
+                                    Spremi promjene
+                                </Button>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Container>
             </Form>
         </>
     )

@@ -9,8 +9,12 @@ export const RouteNames = {
     VOZILA: '/vozila',
     VOZILA_NOVI: '/vozila/novi',
     VOZILA_PROMJENA: '/vozila/:sifra',
+
+    NALOZI: '/nalozi',
+    NALOZI_NOVI: '/nalozi/novi',
+    NALOZI_PROMJENA: '/nalozi/:sifra'
 }
 
 
 // memorija, localStorage, firebase
-export const DATA_SOURCE = 'localStorage';
+export const DATA_SOURCE = 'memorija';
