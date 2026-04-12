@@ -4,7 +4,6 @@ import UslugeService from "../../services/usluge/UslugeService"
 import { Button, Table } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { RouteNames } from "../../constants"
-import { GrValidate } from "react-icons/gr"
 
 export default function NalogPregled(){
 
@@ -41,7 +40,6 @@ export default function NalogPregled(){
     async function brisanje(sifra) {
         if (!confirm('Sigurno obrisati nalog?')) return;
         await NalogService.obrisi(sifra);
-        // Osvježavanje liste nakon brisanja
         ucitajNaloze();
     }
 
@@ -56,40 +54,41 @@ export default function NalogPregled(){
         className="btn btn-success w-100 my-3">
             Dodavanje novog naloga
         </Link>
-        <Table striped bordered hover>
+        <Table striped bordered hover className="align-middle shadow-sm">
             <thead>
                 <tr>
                     <th>Naziv/Opis naloga</th>
                     <th>Usluga</th>
-                    <th>Akcija</th>
-                    <th>Aktivan</th>
-                    
-                    
+                    <th className="text-center">Akcija</th>
                 </tr>
             </thead>
             <tbody>
                 {nalozi && nalozi.map((nalog)=>(
                     <tr key={nalog.sifra}>
-                        <td className="lead">{nalog.naziv}</td>
+                        <td className="fw-semibold">{nalog.naziv}</td>
                         <td>{dohvatiNazivUsluge(nalog.usluga)}</td>
                         
+         
                         
-                        <td>
-                            <Button onClick={()=>{navigate(`/nalozi/${nalog.sifra}`)}}>
-                                Promjeni
+                        <td className="text-center">
+                            <Button 
+                                variant="primary" 
+                                size="sm" 
+                                onClick={()=>{navigate(`/nalozi/${nalog.sifra}`)}}>
+                                Promjena
                             </Button>
                             &nbsp;&nbsp;
-                            <Button variant="danger" onClick={() => brisanje(nalog.sifra)}>
+                            <Button 
+                                variant="danger" 
+                                size="sm" 
+                                onClick={() => brisanje(nalog.sifra)}>
                                 Obriši
                             </Button>
-                            
                         </td>
-                        
                     </tr>
                 ))}
             </tbody>
         </Table>
-        
         </>
     )
-}   
+}

@@ -11,6 +11,7 @@ export default function NalogPromjena(){
     const params = useParams()
     const [nalog, setNalog] = useState({})
     const [usluge, setUsluge] = useState([])
+    const [aktivan, setAktivan] = useState(false);
 
     useEffect(()=>{
         ucitajNalog()
@@ -100,6 +101,17 @@ export default function NalogPromjena(){
                                         />
                                     </Form.Group>
                                 </Col>
+                                <Col md={6}>
+                                    <Form.Group controlId="aktivan" className="mb-3 mt-md-3">
+                                        <Form.Check
+                                            type="switch"
+                                            label="Usluga je aktivna"
+                                            checked={aktivan}
+                                            onChange={(e) => setAktivan(e.target.checked)}
+                                            className="fs-5"
+                                        />
+                                    </Form.Group>
+                                </Col>
                             </Row>
 
                             {/* Usluga - Select dropdown */}
@@ -121,6 +133,7 @@ export default function NalogPromjena(){
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
+                                    
                                 </Col>
                             </Row>
 

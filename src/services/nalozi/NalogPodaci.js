@@ -2,7 +2,8 @@ export const nalozi = [
     {
         sifra: 1,
         naziv: 'Nalog 1',
-        usluga: 1
+        usluga: 1,
+        aktivan: true,
     },
     {
         sifra: 2,
