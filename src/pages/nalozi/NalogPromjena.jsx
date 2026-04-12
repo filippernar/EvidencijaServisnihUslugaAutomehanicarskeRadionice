@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import NalogService from "../../services/nalozi/NalogService"
 import UslugaService from "../../services/usluge/UslugeService"
+import VoziloService from "../../services/vozilo/VoziloService" 
 import { Button, Col, Form, Row, Container, Card } from "react-bootstrap"
 import { RouteNames } from "../../constants"
 
@@ -11,11 +12,12 @@ export default function NalogPromjena(){
     const params = useParams()
     const [nalog, setNalog] = useState({})
     const [usluge, setUsluge] = useState([])
-    const [aktivan, setAktivan] = useState(false);
+    const [vozila, setVozila] = useState([]) 
 
     useEffect(()=>{
         ucitajNalog()
         ucitajUsluge()
+        ucitajVozila() 
     },[])
 
     async function ucitajNalog() {
@@ -38,6 +40,17 @@ export default function NalogPromjena(){
         })
     }
 
+   
+    async function ucitajVozila() {
+        await VoziloService.get().then((odgovor) => {
+            if (!odgovor.success) {
+                alert('Nije implementiran servis za vozila')
+                return
+            }
+            setVozila(odgovor.data)
+        })
+    }
+
     async function promjeni(nalog) {
         await NalogService.promjeni(params.sifra, nalog).then(()=>{
             navigate(RouteNames.NALOZI)
@@ -48,33 +61,34 @@ export default function NalogPromjena(){
         e.preventDefault()
         const podaci = new FormData(e.target)
 
-        // --- KONTROLA 1: Naziv/Opis (Postojanje) ---
         if (!podaci.get('naziv') || podaci.get('naziv').trim().length === 0) {
             alert("Naziv naloga je obavezan!");
             return;
         }
 
-        // --- KONTROLA 2: Naziv (Minimalna duljina) ---
         if (podaci.get('naziv').trim().length < 3) {
             alert("Naziv naloga mora imati najmanje 3 znaka!");
             return;
         }
 
-        // --- KONTROLA 3: Usluga (Postojanje) ---
         if (!podaci.get('usluga') || podaci.get('usluga') === "") {
             alert("Morate odabrati uslugu za ovaj nalog!");
             return;
         }
 
-        const odabranaUsluga = parseInt(podaci.get('usluga'));
-        if (isNaN(odabranaUsluga) || odabranaUsluga <= 0) {
-            alert("Odabrana usluga nije valjana!");
+        // --- KONTROLA ZA VOZILO ---
+        if (!podaci.get('vozilo') || podaci.get('vozilo') === "") {
+            alert("Morate odabrati vozilo!");
             return;
         }
 
+        const odabranaUsluga = parseInt(podaci.get('usluga'));
+        const odabranoVozilo = parseInt(podaci.get('vozilo')); // Dodano
+
         promjeni({
             naziv: podaci.get('naziv'),
-            usluga: odabranaUsluga
+            usluga: odabranaUsluga,
+            vozilo: odabranoVozilo 
         })
     }
 
@@ -87,7 +101,6 @@ export default function NalogPromjena(){
                         <Card.Body>
                             <Card.Title className="mb-4">Podaci o nalogu br. {nalog.sifra}</Card.Title>
 
-                            {/* Naziv naloga */}
                             <Row>
                                 <Col xs={12}>
                                     <Form.Group controlId="naziv" className="mb-3">
@@ -101,20 +114,30 @@ export default function NalogPromjena(){
                                         />
                                     </Form.Group>
                                 </Col>
-                                <Col md={6}>
-                                    <Form.Group controlId="aktivan" className="mb-3 mt-md-3">
-                                        <Form.Check
-                                            type="switch"
-                                            label="Usluga je aktivna"
-                                            checked={aktivan}
-                                            onChange={(e) => setAktivan(e.target.checked)}
-                                            className="fs-5"
-                                        />
+                            </Row>
+
+                            {/* Dodan Select za Vozilo */}
+                            <Row>
+                                <Col xs={12}>
+                                    <Form.Group controlId="vozilo" className="mb-3">
+                                        <Form.Label className="fw-bold">Vozilo</Form.Label>
+                                        <Form.Select 
+                                            name="vozilo" 
+                                            required 
+                                            value={nalog.vozilo || ''} 
+                                            onChange={(e) => setNalog({...nalog, vozilo: parseInt(e.target.value)})}
+                                        >
+                                            <option value="">Odaberite vozilo</option>
+                                            {vozila && vozila.map((v) => (
+                                                <option key={v.sifra} value={v.sifra}>
+                                                    {v.marka} {v.model} ({v.registracija})
+                                                </option>
+                                            ))}
+                                        </Form.Select>
                                     </Form.Group>
                                 </Col>
                             </Row>
 
-                            {/* Usluga - Select dropdown */}
                             <Row>
                                 <Col xs={12}>
                                     <Form.Group controlId="usluga" className="mb-3">
@@ -133,13 +156,11 @@ export default function NalogPromjena(){
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
-                                    
                                 </Col>
                             </Row>
 
                             <hr />
 
-                            {/* Gumbi za akciju */}
                             <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                                 <Link to={RouteNames.NALOZI} className="btn btn-danger px-4">
                                     Odustani

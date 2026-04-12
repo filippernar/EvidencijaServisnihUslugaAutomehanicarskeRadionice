@@ -4,14 +4,17 @@ import { RouteNames } from "../../constants"
 import { Link, useNavigate } from "react-router-dom"
 import NalogService from "../../services/nalozi/NalogService"
 import UslugeService from "../../services/usluge/UslugeService"
+import VoziloService from "../../services/vozilo/VoziloService" // Dodano
 
 export default function NalogNovi() {
 
     const navigate = useNavigate()
     const [usluge, setUsluge] = useState([])
+    const [vozila, setVozila] = useState([]) // Dodano
 
     useEffect(() => {
         ucitajUsluge()
+        ucitajVozila() // Dodano
     }, [])
 
     async function ucitajUsluge() {
@@ -21,6 +24,17 @@ export default function NalogNovi() {
                 return
             }
             setUsluge(odgovor.data)
+        })
+    }
+
+    // Dodana funkcija za učitavanje vozila
+    async function ucitajVozila() {
+        await VoziloService.get().then((odgovor) => {
+            if (!odgovor.success) {
+                alert('Nije implementiran servis za vozila')
+                return
+            }
+            setVozila(odgovor.data)
         })
     }
 
@@ -34,34 +48,34 @@ export default function NalogNovi() {
         e.preventDefault()
         const podaci = new FormData(e.target)
 
-        // --- KONTROLA 1: Naziv/Opis (Postojanje) ---
         if (!podaci.get('naziv') || podaci.get('naziv').trim().length === 0) {
             alert("Naziv naloga je obavezan!");
             return;
         }
 
-        // --- KONTROLA 2: Naziv (Minimalna duljina) ---
         if (podaci.get('naziv').trim().length < 3) {
             alert("Naziv naloga mora imati najmanje 3 znaka!");
             return;
         }
 
-        // --- KONTROLA 3: Usluga (Postojanje) ---
         if (!podaci.get('usluga') || podaci.get('usluga') === "") {
             alert("Morate odabrati uslugu!");
             return;
         }
 
-        // --- KONTROLA 4: Usluga (Validna vrijednost) ---
-        const odabranaUsluga = parseInt(podaci.get('usluga'));
-        if (isNaN(odabranaUsluga) || odabranaUsluga <= 0) {
-            alert("Odabrana usluga nije valjana!");
+        // --- KONTROLA ZA VOZILO ---
+        if (!podaci.get('vozilo') || podaci.get('vozilo') === "") {
+            alert("Morate odabrati vozilo!");
             return;
         }
 
+        const odabranaUsluga = parseInt(podaci.get('usluga'));
+        const odabranoVozilo = parseInt(podaci.get('vozilo')); // Dodano
+
         dodaj({
             naziv: podaci.get('naziv'),
-            usluga: odabranaUsluga
+            usluga: odabranaUsluga,
+            vozilo: odabranoVozilo // Dodano
         })
     }
 
@@ -74,7 +88,6 @@ export default function NalogNovi() {
                         <Card.Body>
                             <Card.Title className="mb-4">Podaci o radnom nalogu</Card.Title>
 
-                            {/* Naziv naloga */}
                             <Row>
                                 <Col xs={12}>
                                     <Form.Group controlId="naziv" className="mb-3">
@@ -89,7 +102,23 @@ export default function NalogNovi() {
                                 </Col>
                             </Row>
 
-                            {/* Usluga - Select dropdown */}
+                            {/* Dodan Select za Vozilo */}
+                            <Row>
+                                <Col xs={12}>
+                                    <Form.Group controlId="vozilo" className="mb-3">
+                                        <Form.Label className="fw-bold">Vozilo</Form.Label>
+                                        <Form.Select name="vozilo" required>
+                                            <option value="">Odaberite vozilo</option>
+                                            {vozila && vozila.map((v) => (
+                                                <option key={v.sifra} value={v.sifra}>
+                                                    {v.marka} {v.model} ({v.registracija})
+                                                </option>
+                                            ))}
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+
                             <Row>
                                 <Col xs={12}>
                                     <Form.Group controlId="usluga" className="mb-3">
@@ -108,7 +137,6 @@ export default function NalogNovi() {
 
                             <hr />
 
-                            {/* Gumbi za akciju */}
                             <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                                 <Link to={RouteNames.NALOZI} className="btn btn-danger px-4">
                                     Odustani

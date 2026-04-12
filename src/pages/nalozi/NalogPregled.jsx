@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import NalogService from "../../services/nalozi/NalogService"
 import UslugeService from "../../services/usluge/UslugeService"
+import VoziloService from "../../services/vozilo/VoziloService" 
 import { Button, Table } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { RouteNames } from "../../constants"
@@ -11,10 +12,12 @@ export default function NalogPregled(){
 
     const [nalozi, setNalozi] = useState([])
     const [usluge, setUsluge] = useState([])
+    const [vozila, setVozila] = useState([]) 
 
     useEffect(()=>{
         ucitajNaloze()
         ucitajUsluge()
+        ucitajVozila() 
     },[])
 
     async function ucitajNaloze() {
@@ -37,6 +40,17 @@ export default function NalogPregled(){
         })
     }
 
+    
+    async function ucitajVozila() {
+        await VoziloService.get().then((odgovor)=>{
+            if(!odgovor.success){
+                alert('Nije implementiran servis za vozila')
+                return
+            }
+            setVozila(odgovor.data)
+        })
+    }
+
     async function brisanje(sifra) {
         if (!confirm('Sigurno obrisati nalog?')) return;
         await NalogService.obrisi(sifra);
@@ -46,6 +60,12 @@ export default function NalogPregled(){
     function dohvatiNazivUsluge(sifraUsluge) {
         const usluga = usluge.find(u => u.sifra === sifraUsluge)
         return usluga ? usluga.naziv : 'Nepoznata usluga'
+    }
+
+    
+    function dohvatiVozilo(sifraVozila) {
+        const vozilo = vozila.find(v => v.sifra === sifraVozila)
+        return vozilo ? `${vozilo.marka} ${vozilo.model} (${vozilo.registracija})` : 'Nepoznato vozilo'
     }
 
     return(
@@ -58,6 +78,7 @@ export default function NalogPregled(){
             <thead>
                 <tr>
                     <th>Naziv/Opis naloga</th>
+                    <th>Vozilo</th> {}
                     <th>Usluga</th>
                     <th className="text-center">Akcija</th>
                 </tr>
@@ -66,9 +87,8 @@ export default function NalogPregled(){
                 {nalozi && nalozi.map((nalog)=>(
                     <tr key={nalog.sifra}>
                         <td className="fw-semibold">{nalog.naziv}</td>
+                        <td>{dohvatiVozilo(nalog.vozilo)}</td> {}
                         <td>{dohvatiNazivUsluge(nalog.usluga)}</td>
-                        
-         
                         
                         <td className="text-center">
                             <Button 
