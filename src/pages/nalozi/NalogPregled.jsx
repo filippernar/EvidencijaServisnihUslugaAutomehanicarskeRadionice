@@ -15,10 +15,14 @@ export default function NalogPregled(){
     const [vozila, setVozila] = useState([]) 
 
     useEffect(()=>{
-        ucitajNaloze()
-        ucitajUsluge()
-        ucitajVozila() 
+        ucitajPodatke()
     },[])
+
+    async function ucitajPodatke() {
+        await ucitajUsluge()
+        await ucitajVozila()
+        await ucitajNaloze()
+    }
 
     async function ucitajNaloze() {
         await NalogService.get().then((odgovor)=>{
@@ -39,7 +43,6 @@ export default function NalogPregled(){
             setUsluge(odgovor.data)
         })
     }
-
     
     async function ucitajVozila() {
         await VoziloService.get().then((odgovor)=>{
@@ -57,58 +60,71 @@ export default function NalogPregled(){
         ucitajNaloze();
     }
 
-    function dohvatiNazivUsluge(sifraUsluge) {
-        const usluga = usluge.find(u => u.sifra === sifraUsluge)
-        return usluga ? usluga.naziv : 'Nepoznata usluga'
-    }
+    
+    function dohvatiNaziveUsluga(sifreUsluga) {
+        if (!sifreUsluga || !Array.isArray(sifreUsluga) || sifreUsluga.length === 0) {
+            return <i className="text-muted">Nema dodanih usluga</i>
+        }
 
+        return sifreUsluga.map(sifra => {
+            const usluga = usluge.find(u => u.sifra === parseInt(sifra));
+            return usluga ? usluga.naziv : 'Nepoznata usluga';
+        }).join(', ');
+    }
     
     function dohvatiVozilo(sifraVozila) {
-        const vozilo = vozila.find(v => v.sifra === sifraVozila)
+        const vozilo = vozila.find(v => v.sifra === parseInt(sifraVozila))
         return vozilo ? `${vozilo.marka} ${vozilo.model} (${vozilo.registracija})` : 'Nepoznato vozilo'
     }
 
     return(
         <>
-        <Link to={RouteNames.NALOZI_NOVI}
-        className="btn btn-success w-100 my-3">
-            Dodavanje novog naloga
-        </Link>
-        <Table striped bordered hover className="align-middle shadow-sm">
-            <thead>
-                <tr>
-                    <th>Naziv/Opis naloga</th>
-                    <th>Vozilo</th> {}
-                    <th>Usluga</th>
-                    <th className="text-center">Akcija</th>
-                </tr>
-            </thead>
-            <tbody>
-                {nalozi && nalozi.map((nalog)=>(
-                    <tr key={nalog.sifra}>
-                        <td className="fw-semibold">{nalog.naziv}</td>
-                        <td>{dohvatiVozilo(nalog.vozilo)}</td> {}
-                        <td>{dohvatiNazivUsluge(nalog.usluga)}</td>
-                        
-                        <td className="text-center">
-                            <Button 
-                                variant="primary" 
-                                size="sm" 
-                                onClick={()=>{navigate(`/nalozi/${nalog.sifra}`)}}>
-                                Promjena
-                            </Button>
-                            &nbsp;&nbsp;
-                            <Button 
-                                variant="danger" 
-                                size="sm" 
-                                onClick={() => brisanje(nalog.sifra)}>
-                                Obriši
-                            </Button>
-                        </td>
+            <Link to={RouteNames.NALOZI_NOVI}
+                className="btn btn-success w-100 my-3">
+                Dodavanje novog naloga
+            </Link>
+
+            <Table striped bordered hover className="align-middle shadow-sm">
+                <thead>
+                    <tr>
+                        <th>Naziv/Opis naloga</th>
+                        <th>Vozilo</th>
+                        <th>Usluge na nalogu</th>
+                        <th className="text-center">Akcija</th>
                     </tr>
-                ))}
-            </tbody>
-        </Table>
+                </thead>
+                <tbody>
+                    {nalozi && nalozi.map((nalog)=>(
+                        <tr key={nalog.sifra}>
+                            <td className="fw-semibold">{nalog.naziv}</td>
+                            <td>{dohvatiVozilo(nalog.vozilo)}</td>
+                            {}
+                            <td>{dohvatiNaziveUsluga(nalog.usluge)}</td>
+                            
+                            <td className="text-center">
+                                <Button 
+                                    variant="primary" 
+                                    size="sm" 
+                                    onClick={()=>{navigate(`/nalozi/${nalog.sifra}`)}}>
+                                    Promjena
+                                </Button>
+                                &nbsp;&nbsp;
+                                <Button 
+                                    variant="danger" 
+                                    size="sm" 
+                                    onClick={() => brisanje(nalog.sifra)}>
+                                    Obriši
+                                </Button>
+                            </td>
+                        </tr>
+                    ))}
+                    {(!nalozi || nalozi.length === 0) && (
+                        <tr>
+                            <td colSpan="4" className="text-center">Nema dostupnih naloga</td>
+                        </tr>
+                    )}
+                </tbody>
+            </Table>
         </>
     )
 }

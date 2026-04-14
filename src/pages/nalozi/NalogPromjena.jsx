@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import NalogService from "../../services/nalozi/NalogService"
 import UslugaService from "../../services/usluge/UslugeService"
 import VoziloService from "../../services/vozilo/VoziloService" 
-import { Button, Col, Form, Row, Container, Card } from "react-bootstrap"
+import { Button, Col, Form, Row, Container, Card, Table } from "react-bootstrap"
 import { RouteNames } from "../../constants"
 
 export default function NalogPromjena(){
@@ -13,6 +13,12 @@ export default function NalogPromjena(){
     const [nalog, setNalog] = useState({})
     const [usluge, setUsluge] = useState([])
     const [vozila, setVozila] = useState([]) 
+    
+    
+    const [odabraneUsluge, setOdabraneUsluge] = useState([])
+    const [pretragaUsluga, setPretragaUsluga] = useState('')
+    const [prikaziAutocomplete, setPrikaziAutocomplete] = useState(false)
+    const [odabraniIndex, setOdabraniIndex] = useState(-1)
 
     useEffect(()=>{
         ucitajNalog()
@@ -20,39 +26,73 @@ export default function NalogPromjena(){
         ucitajVozila() 
     },[])
 
+    
+    useEffect(() => {
+        if (nalog.usluge && usluge.length > 0) {
+            const odabrane = usluge.filter(u => nalog.usluge.includes(u.sifra))
+            setOdabraneUsluge(odabrane)
+        }
+    }, [nalog, usluge])
+
     async function ucitajNalog() {
         await NalogService.getBySifra(params.sifra).then((odgovor)=>{
-            if(!odgovor.success){
-                alert('Nije implementiran servis za naloge')
-                return
-            }
-            setNalog(odgovor.data)
+            if(odgovor.success) setNalog(odgovor.data)
         })
     }
 
     async function ucitajUsluge() {
         await UslugaService.get().then((odgovor) => {
-            if (!odgovor.success) {
-                alert('Nije implementiran servis za usluge')
-                return
-            }
-            setUsluge(odgovor.data)
+            if (odgovor.success) setUsluge(odgovor.data)
         })
     }
 
-   
     async function ucitajVozila() {
         await VoziloService.get().then((odgovor) => {
-            if (!odgovor.success) {
-                alert('Nije implementiran servis za vozila')
-                return
-            }
-            setVozila(odgovor.data)
+            if (odgovor.success) setVozila(odgovor.data)
         })
     }
 
-    async function promjeni(nalog) {
-        await NalogService.promjeni(params.sifra, nalog).then(()=>{
+    
+    function dodajUslugu(usluga) {
+        if (!odabraneUsluge.find(u => u.sifra === usluga.sifra)) {
+            setOdabraneUsluge([...odabraneUsluge, usluga])
+        }
+        setPretragaUsluga('')
+        setPrikaziAutocomplete(false)
+        setOdabraniIndex(-1)
+    }
+
+    function ukloniUslugu(sifra) {
+        setOdabraneUsluge(odabraneUsluge.filter(u => u.sifra !== sifra))
+    }
+
+    function filtrirajUsluge() {
+        if (!pretragaUsluga) return []
+        return usluge.filter(u => 
+            !odabraneUsluge.find(ou => ou.sifra === u.sifra) &&
+            u.naziv.toLowerCase().includes(pretragaUsluga.toLowerCase())
+        )
+    }
+
+    function handleKeyDown(e) {
+        const filtrirane = filtrirajUsluge()
+        if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            setOdabraniIndex(prev => prev < filtrirane.length - 1 ? prev + 1 : prev)
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            setOdabraniIndex(prev => prev > 0 ? prev - 1 : 0)
+        } else if (e.key === 'Enter' && odabraniIndex >= 0 && filtrirane.length > 0) {
+            e.preventDefault()
+            dodajUslugu(filtrirane[odabraniIndex])
+        } else if (e.key === 'Escape') {
+            setPrikaziAutocomplete(false)
+            setOdabraniIndex(-1)
+        }
+    }
+
+    async function promjeni(nalogObjekt) {
+        await NalogService.promjeni(params.sifra, nalogObjekt).then(()=>{
             navigate(RouteNames.NALOZI)
         })
     }
@@ -61,34 +101,10 @@ export default function NalogPromjena(){
         e.preventDefault()
         const podaci = new FormData(e.target)
 
-        if (!podaci.get('naziv') || podaci.get('naziv').trim().length === 0) {
-            alert("Naziv naloga je obavezan!");
-            return;
-        }
-
-        if (podaci.get('naziv').trim().length < 3) {
-            alert("Naziv naloga mora imati najmanje 3 znaka!");
-            return;
-        }
-
-        if (!podaci.get('usluga') || podaci.get('usluga') === "") {
-            alert("Morate odabrati uslugu za ovaj nalog!");
-            return;
-        }
-
-        // --- KONTROLA ZA VOZILO ---
-        if (!podaci.get('vozilo') || podaci.get('vozilo') === "") {
-            alert("Morate odabrati vozilo!");
-            return;
-        }
-
-        const odabranaUsluga = parseInt(podaci.get('usluga'));
-        const odabranoVozilo = parseInt(podaci.get('vozilo')); // Dodano
-
         promjeni({
             naziv: podaci.get('naziv'),
-            usluga: odabranaUsluga,
-            vozilo: odabranoVozilo 
+            vozilo: parseInt(podaci.get('vozilo')),
+            usluge: odabraneUsluge.map(u => u.sifra)
         })
     }
 
@@ -97,28 +113,23 @@ export default function NalogPromjena(){
             <h3>Promjena naloga</h3>
             <Form onSubmit={odradiSubmit}>
                 <Container className="mt-4">
-                    <Card className="shadow-sm">
-                        <Card.Body>
-                            <Card.Title className="mb-4">Podaci o nalogu br. {nalog.sifra}</Card.Title>
-
-                            <Row>
-                                <Col xs={12}>
+                    <Row>
+                        {/* LIJEVA STRANA: Podaci o nalogu */}
+                        <Col md={6}>
+                            <Card className="shadow-sm">
+                                <Card.Body>
+                                    <Card.Title className="mb-4">Podaci o nalogu br. {nalog.sifra}</Card.Title>
+                                    
                                     <Form.Group controlId="naziv" className="mb-3">
                                         <Form.Label className="fw-bold">Naziv/Opis naloga</Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="naziv"
-                                            placeholder="Unesite naziv naloga"
-                                            required
                                             defaultValue={nalog.naziv}
+                                            required
                                         />
                                     </Form.Group>
-                                </Col>
-                            </Row>
 
-                            {/* Dodan Select za Vozilo */}
-                            <Row>
-                                <Col xs={12}>
                                     <Form.Group controlId="vozilo" className="mb-3">
                                         <Form.Label className="fw-bold">Vozilo</Form.Label>
                                         <Form.Select 
@@ -135,42 +146,91 @@ export default function NalogPromjena(){
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
-                                </Col>
-                            </Row>
+                                </Card.Body>
+                            </Card>
+                        </Col>
 
-                            <Row>
-                                <Col xs={12}>
-                                    <Form.Group controlId="usluga" className="mb-3">
-                                        <Form.Label className="fw-bold">Dodijeljena usluga</Form.Label>
-                                        <Form.Select 
-                                            name="usluga" 
-                                            required 
-                                            value={nalog.usluga || ''} 
-                                            onChange={(e) => setNalog({...nalog, usluga: parseInt(e.target.value)})}
-                                        >
-                                            <option value="">Odaberite uslugu</option>
-                                            {usluge && usluge.map((u) => (
-                                                <option key={u.sifra} value={u.sifra}>
-                                                    {u.naziv} ({u.cijena} €)
-                                                </option>
-                                            ))}
-                                        </Form.Select>
+                        {/* DESNA STRANA: Usluge (Autocomplete) */}
+                        <Col md={6}>
+                            <Card className="shadow-sm">
+                                <Card.Body>
+                                    <Card.Title className="mb-4">Usluge na nalogu</Card.Title>
+
+                                    <Form.Group className="mb-3 position-relative">
+                                        <Form.Label className="fw-bold">Dodaj uslugu</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Pretraži usluge..."
+                                            value={pretragaUsluga}
+                                            onChange={(e) => {
+                                                setPretragaUsluga(e.target.value)
+                                                setPrikaziAutocomplete(e.target.value.length > 0)
+                                                setOdabraniIndex(-1)
+                                            }}
+                                            onFocus={() => setPrikaziAutocomplete(pretragaUsluga.length > 0)}
+                                            onKeyDown={handleKeyDown}
+                                        />
+                                        {prikaziAutocomplete && filtrirajUsluge().length > 0 && (
+                                            <div className="position-absolute w-100 bg-white border rounded shadow-sm" style={{zIndex: 1000, maxHeight: '200px', overflowY: 'auto'}}>
+                                                {filtrirajUsluge().map((usluga, index) => (
+                                                    <div
+                                                        key={usluga.sifra}
+                                                        className="p-2"
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                            backgroundColor: index === odabraniIndex ? '#007bff' : 'white',
+                                                            color: index === odabraniIndex ? 'white' : 'black'
+                                                        }}
+                                                        onClick={() => dodajUslugu(usluga)}
+                                                        onMouseEnter={() => setOdabraniIndex(index)}
+                                                    >
+                                                        {usluga.naziv} ({usluga.cijena} €)
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </Form.Group>
-                                </Col>
-                            </Row>
 
-                            <hr />
+                                    <div style={{overflow: 'auto', maxHeight: '300px'}}>
+                                        <Table striped bordered hover size="sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Naziv usluge</th>
+                                                    <th style={{width: '80px'}}>Akcija</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {odabraneUsluge.map(u => (
+                                                    <tr key={u.sifra}>
+                                                        <td>{u.naziv}</td>
+                                                        <td>
+                                                            <Button
+                                                                variant="danger"
+                                                                size="sm"
+                                                                onClick={() => ukloniUslugu(u.sifra)}
+                                                            >
+                                                                Obriši
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                    {odabraneUsluge.length === 0 && (
+                                        <p className="text-muted text-center">Nema odabranih usluga</p>
+                                    )}
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
 
-                            <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                                <Link to={RouteNames.NALOZI} className="btn btn-danger px-4">
-                                    Odustani
-                                </Link>
-                                <Button type="submit" variant="success">
-                                    Spremi promjene
-                                </Button>
-                            </div>
-                        </Card.Body>
-                    </Card>
+                    <hr className="my-4" />
+
+                    <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <Link to={RouteNames.NALOZI} className="btn btn-danger px-4">Odustani</Link>
+                        <Button type="submit" variant="success">Spremi promjene</Button>
+                    </div>
                 </Container>
             </Form>
         </>

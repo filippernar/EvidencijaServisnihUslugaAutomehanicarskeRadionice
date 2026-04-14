@@ -1,24 +1,34 @@
 import { useEffect, useState } from "react"
-import { Form, Button, Row, Col, Container, Card } from "react-bootstrap"
+import { Form, Button, Row, Col, Container, Card, Table } from "react-bootstrap"
 import { RouteNames } from "../../constants"
 import { Link, useNavigate } from "react-router-dom"
 import NalogService from "../../services/nalozi/NalogService"
-import UslugeService from "../../services/usluge/UslugeService"
-import VoziloService from "../../services/vozilo/VoziloService" // Dodano
+import UslugaService from "../../services/usluge/UslugeService"
+import VoziloService from "../../services/vozilo/VoziloService"
 
 export default function NalogNovi() {
 
     const navigate = useNavigate()
+    const [vozila, setVozila] = useState([])
     const [usluge, setUsluge] = useState([])
-    const [vozila, setVozila] = useState([]) // Dodano
+    const [odabraneUsluge, setOdabraneUsluge] = useState([])
+    const [pretragaUsluga, setPretragaUsluga] = useState('')
+    const [prikaziAutocomplete, setPrikaziAutocomplete] = useState(false)
+    const [odabraniIndex, setOdabraniIndex] = useState(-1)
 
     useEffect(() => {
+        ucitajVozila()
         ucitajUsluge()
-        ucitajVozila() // Dodano
     }, [])
 
+    async function ucitajVozila() {
+        await VoziloService.get().then((odgovor) => {
+            if (odgovor.success) setVozila(odgovor.data)
+        })
+    }
+
     async function ucitajUsluge() {
-        await UslugeService.get().then((odgovor) => {
+        await UslugaService.get().then((odgovor) => {
             if (!odgovor.success) {
                 alert('Nije implementiran servis za usluge')
                 return
@@ -27,15 +37,45 @@ export default function NalogNovi() {
         })
     }
 
-    // Dodana funkcija za učitavanje vozila
-    async function ucitajVozila() {
-        await VoziloService.get().then((odgovor) => {
-            if (!odgovor.success) {
-                alert('Nije implementiran servis za vozila')
-                return
-            }
-            setVozila(odgovor.data)
-        })
+    function dodajUslugu(usluga) {
+        if (!odabraneUsluge.find(u => u.sifra === usluga.sifra)) {
+            setOdabraneUsluge([...odabraneUsluge, usluga])
+        }
+        setPretragaUsluga('')
+        setPrikaziAutocomplete(false)
+        setOdabraniIndex(-1)
+    }
+
+    function ukloniUslugu(sifra) {
+        setOdabraneUsluge(odabraneUsluge.filter(u => u.sifra !== sifra))
+    }
+
+    function filtrirajUsluge() {
+        if (!pretragaUsluga) return []
+        return usluge.filter(u =>
+            !odabraneUsluge.find(ou => ou.sifra === u.sifra) &&
+            u.naziv.toLowerCase().includes(pretragaUsluga.toLowerCase())
+        )
+    }
+
+    function handleKeyDown(e) {
+        const filtrirane = filtrirajUsluge()
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            setOdabraniIndex(prev =>
+                prev < filtrirane.length - 1 ? prev + 1 : prev
+            )
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            setOdabraniIndex(prev => prev > 0 ? prev - 1 : 0)
+        } else if (e.key === 'Enter' && odabraniIndex >= 0 && filtrirane.length > 0) {
+            e.preventDefault()
+            dodajUslugu(filtrirane[odabraniIndex])
+        } else if (e.key === 'Escape') {
+            setPrikaziAutocomplete(false)
+            setOdabraniIndex(-1)
+        }
     }
 
     async function dodaj(nalog) {
@@ -48,34 +88,10 @@ export default function NalogNovi() {
         e.preventDefault()
         const podaci = new FormData(e.target)
 
-        if (!podaci.get('naziv') || podaci.get('naziv').trim().length === 0) {
-            alert("Naziv naloga je obavezan!");
-            return;
-        }
-
-        if (podaci.get('naziv').trim().length < 3) {
-            alert("Naziv naloga mora imati najmanje 3 znaka!");
-            return;
-        }
-
-        if (!podaci.get('usluga') || podaci.get('usluga') === "") {
-            alert("Morate odabrati uslugu!");
-            return;
-        }
-
-        // --- KONTROLA ZA VOZILO ---
-        if (!podaci.get('vozilo') || podaci.get('vozilo') === "") {
-            alert("Morate odabrati vozilo!");
-            return;
-        }
-
-        const odabranaUsluga = parseInt(podaci.get('usluga'));
-        const odabranoVozilo = parseInt(podaci.get('vozilo')); // Dodano
-
         dodaj({
             naziv: podaci.get('naziv'),
-            usluga: odabranaUsluga,
-            vozilo: odabranoVozilo // Dodano
+            vozilo: parseInt(podaci.get('vozilo')),
+            usluge: odabraneUsluge.map(u => u.sifra)
         })
     }
 
@@ -84,27 +100,22 @@ export default function NalogNovi() {
             <h3>Unos novog naloga</h3>
             <Form onSubmit={odradiSubmit}>
                 <Container className="mt-4">
-                    <Card className="shadow-sm">
-                        <Card.Body>
-                            <Card.Title className="mb-4">Podaci o radnom nalogu</Card.Title>
-
-                            <Row>
-                                <Col xs={12}>
+                    <Row>
+                        {/* Lijeva strana - Podaci o nalogu */}
+                        <Col md={6}>
+                            <Card className="shadow-sm">
+                                <Card.Body>
+                                    <Card.Title className="mb-4">Podaci o nalogu</Card.Title>
                                     <Form.Group controlId="naziv" className="mb-3">
                                         <Form.Label className="fw-bold">Naziv/Opis naloga</Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="naziv"
-                                            placeholder="Npr. Nalog za izmjenu ulja"
+                                            placeholder="Npr. Servis kočnica"
                                             required
                                         />
                                     </Form.Group>
-                                </Col>
-                            </Row>
 
-                            {/* Dodan Select za Vozilo */}
-                            <Row>
-                                <Col xs={12}>
                                     <Form.Group controlId="vozilo" className="mb-3">
                                         <Form.Label className="fw-bold">Vozilo</Form.Label>
                                         <Form.Select name="vozilo" required>
@@ -116,37 +127,93 @@ export default function NalogNovi() {
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
-                                </Col>
-                            </Row>
+                                </Card.Body>
+                            </Card>
+                        </Col>
 
-                            <Row>
-                                <Col xs={12}>
-                                    <Form.Group controlId="usluga" className="mb-3">
-                                        <Form.Label className="fw-bold">Usluga</Form.Label>
-                                        <Form.Select name="usluga" required>
-                                            <option value="">Odaberite uslugu</option>
-                                            {usluge && usluge.map((u) => (
-                                                <option key={u.sifra} value={u.sifra}>
-                                                    {u.naziv}
-                                                </option>
-                                            ))}
-                                        </Form.Select>
+                        {/* Desna strana - Usluge */}
+                        <Col md={6}>
+                            <Card className="shadow-sm">
+                                <Card.Body>
+                                    <Card.Title className="mb-4">Usluge na nalogu</Card.Title>
+
+                                    <Form.Group className="mb-3 position-relative">
+                                        <Form.Label className="fw-bold">Dodaj uslugu</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Pretraži usluge..."
+                                            value={pretragaUsluga}
+                                            onChange={(e) => {
+                                                setPretragaUsluga(e.target.value)
+                                                setPrikaziAutocomplete(e.target.value.length > 0)
+                                                setOdabraniIndex(-1)
+                                            }}
+                                            onFocus={() => setPrikaziAutocomplete(pretragaUsluga.length > 0)}
+                                            onKeyDown={handleKeyDown}
+                                        />
+                                        {prikaziAutocomplete && filtrirajUsluge().length > 0 && (
+                                            <div className="position-absolute w-100 bg-white border rounded shadow-sm" style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}>
+                                                {filtrirajUsluge().map((u, index) => (
+                                                    <div
+                                                        key={u.sifra}
+                                                        className="p-2"
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                            backgroundColor: index === odabraniIndex ? '#007bff' : 'white',
+                                                            color: index === odabraniIndex ? 'white' : 'black'
+                                                        }}
+                                                        onClick={() => dodajUslugu(u)}
+                                                        onMouseEnter={() => setOdabraniIndex(index)}
+                                                    >
+                                                        {u.naziv}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </Form.Group>
-                                </Col>
-                            </Row>
 
-                            <hr />
+                                    {odabraneUsluge.length > 0 && (
+                                        <div style={{ overflow: 'auto', maxHeight: '300px' }}>
+                                            <Table striped bordered hover size="sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Naziv usluge</th>
+                                                        <th style={{ width: '80px' }}>Akcija</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {odabraneUsluge.map(u => (
+                                                        <tr key={u.sifra}>
+                                                            <td>{u.naziv}</td>
+                                                            <td>
+                                                                <Button
+                                                                    variant="danger"
+                                                                    size="sm"
+                                                                    onClick={() => ukloniUslugu(u.sifra)}
+                                                                >
+                                                                    Obriši
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    )}
+                                    {odabraneUsluge.length === 0 && (
+                                        <p className="text-muted text-center">Nema odabranih usluga</p>
+                                    )}
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
 
-                            <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                                <Link to={RouteNames.NALOZI} className="btn btn-danger px-4">
-                                    Odustani
-                                </Link>
-                                <Button type="submit" variant="success">
-                                    Dodaj novi nalog
-                                </Button>
-                            </div>
-                        </Card.Body>
-                    </Card>
+                    <hr className="my-4" />
+
+                    <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <Link to={RouteNames.NALOZI} className="btn btn-danger px-4"> Odustani </Link>
+                        <Button type="submit" variant="success"> Dodaj novi nalog </Button>
+                    </div>
                 </Container>
             </Form>
         </>
