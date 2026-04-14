@@ -127,6 +127,7 @@ export default function NalogNovi() {
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
+                                    <h1>=1.720,50 €</h1>
                                 </Card.Body>
                             </Card>
                         </Col>
@@ -178,6 +179,7 @@ export default function NalogNovi() {
                                                 <thead>
                                                     <tr>
                                                         <th>Naziv usluge</th>
+                                                        <th>Cijena</th>
                                                         <th style={{ width: '80px' }}>Akcija</th>
                                                     </tr>
                                                 </thead>
@@ -185,6 +187,7 @@ export default function NalogNovi() {
                                                     {odabraneUsluge.map(u => (
                                                         <tr key={u.sifra}>
                                                             <td>{u.naziv}</td>
+                                                             <td>{u.cijena}</td>
                                                             <td>
                                                                 <Button
                                                                     variant="danger"
