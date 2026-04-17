@@ -5,11 +5,13 @@ import { Link, useNavigate } from "react-router-dom"
 import NalogService from "../../services/nalozi/NalogService"
 import UslugaService from "../../services/usluge/UslugeService"
 import VoziloService from "../../services/vozilo/VoziloService"
+import KlijentService from "../../services/klijent/KlijentService" 
 
 export default function NalogNovi() {
 
     const navigate = useNavigate()
     const [vozila, setVozila] = useState([])
+    const [klijenti, setKlijenti] = useState([]) 
     const [usluge, setUsluge] = useState([])
     const [odabraneUsluge, setOdabraneUsluge] = useState([])
     const [pretragaUsluga, setPretragaUsluga] = useState('')
@@ -18,12 +20,19 @@ export default function NalogNovi() {
 
     useEffect(() => {
         ucitajVozila()
+        ucitajKlijente()
         ucitajUsluge()
     }, [])
 
     async function ucitajVozila() {
         await VoziloService.get().then((odgovor) => {
             if (odgovor.success) setVozila(odgovor.data)
+        })
+    }
+
+    async function ucitajKlijente() { 
+        await KlijentService.get().then((odgovor) => {
+            if (odgovor.success) setKlijenti(odgovor.data)
         })
     }
 
@@ -91,6 +100,7 @@ export default function NalogNovi() {
         dodaj({
             naziv: podaci.get('naziv'),
             vozilo: parseInt(podaci.get('vozilo')),
+            klijent: parseInt(podaci.get('klijent')), 
             usluge: odabraneUsluge.map(u => u.sifra)
         })
     }
@@ -127,7 +137,20 @@ export default function NalogNovi() {
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
-                                    <h1>=1.720,50 €</h1>
+
+                                    <Form.Group controlId="klijent" className="mb-3">
+                                        <Form.Label className="fw-bold">Klijent</Form.Label>
+                                        <Form.Select name="klijent" required>
+                                            <option value="">Odaberite klijenta</option>
+                                            {klijenti && klijenti.map((k) => (
+                                                <option key={k.sifra} value={k.sifra}>
+                                                    {k.ime} {k.prezime}
+                                                </option>
+                                            ))}
+                                        </Form.Select>
+                                    </Form.Group>
+
+                                    <h1 className="mt-4">= 1.720,50 €</h1>
                                 </Card.Body>
                             </Card>
                         </Col>
@@ -173,7 +196,7 @@ export default function NalogNovi() {
                                         )}
                                     </Form.Group>
 
-                                    {odabraneUsluge.length > 0 && (
+                                    {odabraneUsluge.length > 0 ? (
                                         <div style={{ overflow: 'auto', maxHeight: '300px' }}>
                                             <Table striped bordered hover size="sm">
                                                 <thead>
@@ -187,7 +210,7 @@ export default function NalogNovi() {
                                                     {odabraneUsluge.map(u => (
                                                         <tr key={u.sifra}>
                                                             <td>{u.naziv}</td>
-                                                             <td>{u.cijena}</td>
+                                                            <td>{u.cijena}</td>
                                                             <td>
                                                                 <Button
                                                                     variant="danger"
@@ -202,8 +225,7 @@ export default function NalogNovi() {
                                                 </tbody>
                                             </Table>
                                         </div>
-                                    )}
-                                    {odabraneUsluge.length === 0 && (
+                                    ) : (
                                         <p className="text-muted text-center">Nema odabranih usluga</p>
                                     )}
                                 </Card.Body>

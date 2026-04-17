@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import NalogService from "../../services/nalozi/NalogService"
 import UslugaService from "../../services/usluge/UslugeService"
 import VoziloService from "../../services/vozilo/VoziloService" 
+import KlijentService from "../../services/klijent/KlijentService" // Dodano
 import { Button, Col, Form, Row, Container, Card, Table } from "react-bootstrap"
 import { RouteNames } from "../../constants"
 
@@ -13,7 +14,7 @@ export default function NalogPromjena(){
     const [nalog, setNalog] = useState({})
     const [usluge, setUsluge] = useState([])
     const [vozila, setVozila] = useState([]) 
-    
+    const [klijenti, setKlijenti] = useState([]) // Dodano
     
     const [odabraneUsluge, setOdabraneUsluge] = useState([])
     const [pretragaUsluga, setPretragaUsluga] = useState('')
@@ -24,9 +25,10 @@ export default function NalogPromjena(){
         ucitajNalog()
         ucitajUsluge()
         ucitajVozila() 
+        ucitajKlijente() // Dodano
     },[])
 
-    
+    // Sinkronizacija odabranih usluga kada se nalog i sve usluge učitaju
     useEffect(() => {
         if (nalog.usluge && usluge.length > 0) {
             const odabrane = usluge.filter(u => nalog.usluge.includes(u.sifra))
@@ -52,7 +54,12 @@ export default function NalogPromjena(){
         })
     }
 
-    
+    async function ucitajKlijente() { // Dodano
+        await KlijentService.get().then((odgovor) => {
+            if (odgovor.success) setKlijenti(odgovor.data)
+        })
+    }
+
     function dodajUslugu(usluga) {
         if (!odabraneUsluge.find(u => u.sifra === usluga.sifra)) {
             setOdabraneUsluge([...odabraneUsluge, usluga])
@@ -104,6 +111,7 @@ export default function NalogPromjena(){
         promjeni({
             naziv: podaci.get('naziv'),
             vozilo: parseInt(podaci.get('vozilo')),
+            klijent: parseInt(podaci.get('klijent')), // Dodano
             usluge: odabraneUsluge.map(u => u.sifra)
         })
     }
@@ -146,11 +154,30 @@ export default function NalogPromjena(){
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
+
+                                    {/* DODANO: Izbornik za klijenta */}
+                                    <Form.Group controlId="klijent" className="mb-3">
+                                        <Form.Label className="fw-bold">Klijent</Form.Label>
+                                        <Form.Select 
+                                            name="klijent" 
+                                            required 
+                                            value={nalog.klijent || ''} 
+                                            onChange={(e) => setNalog({...nalog, klijent: parseInt(e.target.value)})}
+                                        >
+                                            <option value="">Odaberite klijenta</option>
+                                            {klijenti && klijenti.map((k) => (
+                                                <option key={k.sifra} value={k.sifra}>
+                                                    {k.ime} {k.prezime}
+                                                </option>
+                                            ))}
+                                        </Form.Select>
+                                    </Form.Group>
+
                                 </Card.Body>
                             </Card>
                         </Col>
 
-                        {/* DESNA STRANA: Usluge (Autocomplete) */}
+                        {/* DESNA STRANA: Usluge */}
                         <Col md={6}>
                             <Card className="shadow-sm">
                                 <Card.Body>

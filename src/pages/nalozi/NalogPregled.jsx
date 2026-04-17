@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import NalogService from "../../services/nalozi/NalogService"
 import UslugeService from "../../services/usluge/UslugeService"
 import VoziloService from "../../services/vozilo/VoziloService" 
+import KlijentService from "../../services/klijent/KlijentService" // Dodano
 import { Button, Table } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { RouteNames } from "../../constants"
@@ -13,6 +14,7 @@ export default function NalogPregled(){
     const [nalozi, setNalozi] = useState([])
     const [usluge, setUsluge] = useState([])
     const [vozila, setVozila] = useState([]) 
+    const [klijenti, setKlijenti] = useState([]) // Dodano
 
     useEffect(()=>{
         ucitajPodatke()
@@ -21,6 +23,7 @@ export default function NalogPregled(){
     async function ucitajPodatke() {
         await ucitajUsluge()
         await ucitajVozila()
+        await ucitajKlijente() // Dodano
         await ucitajNaloze()
     }
 
@@ -54,13 +57,22 @@ export default function NalogPregled(){
         })
     }
 
+    async function ucitajKlijente() { // Dodano
+        await KlijentService.get().then((odgovor)=>{
+            if(!odgovor.success){
+                alert('Nije implementiran servis za klijente')
+                return
+            }
+            setKlijenti(odgovor.data)
+        })
+    }
+
     async function brisanje(sifra) {
         if (!confirm('Sigurno obrisati nalog?')) return;
         await NalogService.obrisi(sifra);
         ucitajNaloze();
     }
 
-    
     function dohvatiNaziveUsluga(sifreUsluga) {
         if (!sifreUsluga || !Array.isArray(sifreUsluga) || sifreUsluga.length === 0) {
             return <i className="text-muted">Nema dodanih usluga</i>
@@ -77,6 +89,11 @@ export default function NalogPregled(){
         return vozilo ? `${vozilo.marka} ${vozilo.model} (${vozilo.registracija})` : 'Nepoznato vozilo'
     }
 
+    function dohvatiKlijenta(sifraKlijenta) { // Dodano
+        const klijent = klijenti.find(k => k.sifra === parseInt(sifraKlijenta))
+        return klijent ? `${klijent.ime} ${klijent.prezime}` : 'Nepoznat klijent'
+    }
+
     return(
         <>
             <Link to={RouteNames.NALOZI_NOVI}
@@ -89,6 +106,7 @@ export default function NalogPregled(){
                     <tr>
                         <th>Naziv/Opis naloga</th>
                         <th>Vozilo</th>
+                        <th>Klijent</th> {/* Dodana kolona */}
                         <th>Usluge na nalogu</th>
                         <th className="text-center">Akcija</th>
                     </tr>
@@ -98,7 +116,7 @@ export default function NalogPregled(){
                         <tr key={nalog.sifra}>
                             <td className="fw-semibold">{nalog.naziv}</td>
                             <td>{dohvatiVozilo(nalog.vozilo)}</td>
-                            {}
+                            <td>{dohvatiKlijenta(nalog.klijent)}</td> {/* Prikaz klijenta */}
                             <td>{dohvatiNaziveUsluga(nalog.usluge)}</td>
                             
                             <td className="text-center">
@@ -120,7 +138,7 @@ export default function NalogPregled(){
                     ))}
                     {(!nalozi || nalozi.length === 0) && (
                         <tr>
-                            <td colSpan="4" className="text-center">Nema dostupnih naloga</td>
+                            <td colSpan="5" className="text-center">Nema dostupnih naloga</td>
                         </tr>
                     )}
                 </tbody>
