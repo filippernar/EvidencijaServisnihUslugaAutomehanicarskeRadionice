@@ -14,6 +14,9 @@ import VoziloPromjena from './pages/vozilo/VoziloPromjena'
 import NalogPregled from './pages/nalozi/NalogPregled'
 import NalogNovi from './pages/nalozi/NalogNovi'
 import NalogPromjena from './pages/nalozi/NalogPromjena'
+import KlijentPregled from './pages/klijent/KlijentPregled'
+import KlijentNovi from './pages/klijent/KlijentNovi'
+import KlijentPromjena from './pages/klijent/KlijentPromjena'
 function App() {
 
 
@@ -33,6 +36,11 @@ function App() {
         <Route path={RouteNames.NALOZI} element={<NalogPregled />} />
         <Route path={RouteNames.NALOZI_NOVI} element={<NalogNovi />} />
         <Route path={RouteNames.NALOZI_PROMJENA} element={<NalogPromjena />} />
+
+        <Route path={RouteNames.KLIJENT_PREGLED} element={<KlijentPregled />} />
+        <Route path={RouteNames.KLIJENT_NOVI} element={<KlijentNovi />} />
+        <Route path={RouteNames.KLIJENT_PROMJENA} element={<KlijentPromjena />} />
+
       </Routes> 
       <hr />
       ⚡️Powered by: EvidencijaServisnihUslugaAutomehanicarskeRadionice 🔧

@@ -25,6 +25,10 @@ export default function Izbornik() {
                             >Usluge</NavDropdown.Item>
 
                             <NavDropdown.Item
+                            onClick={()=>navigate(RouteNames.KLIJENT_PREGLED)}
+                            >Klijenti</NavDropdown.Item>
+
+                            <NavDropdown.Item
     onClick={() => navigate(RouteNames.VOZILA)}
 >
     Vozila

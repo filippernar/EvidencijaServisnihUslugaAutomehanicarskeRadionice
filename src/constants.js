@@ -12,7 +12,11 @@ export const RouteNames = {
 
     NALOZI: '/nalozi',
     NALOZI_NOVI: '/nalozi/novi',
-    NALOZI_PROMJENA: '/nalozi/:sifra'
+    NALOZI_PROMJENA: '/nalozi/:sifra',
+
+    KLIJENT_PREGLED: '/klijenti',
+    KLIJENT_NOVI: '/klijenti/novi',
+    KLIJENT_PROMJENA: '/klijenti/:sifra',
 }
 
 
