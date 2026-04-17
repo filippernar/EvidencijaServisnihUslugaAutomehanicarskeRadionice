@@ -17,6 +17,7 @@ import NalogPromjena from './pages/nalozi/NalogPromjena'
 import KlijentPregled from './pages/klijent/KlijentPregled'
 import KlijentNovi from './pages/klijent/KlijentNovi'
 import KlijentPromjena from './pages/klijent/KlijentPromjena'
+import GeneriranjePodataka from './pages/GeneriranjePodataka'
 function App() {
 
 
@@ -40,6 +41,8 @@ function App() {
         <Route path={RouteNames.KLIJENT_PREGLED} element={<KlijentPregled />} />
         <Route path={RouteNames.KLIJENT_NOVI} element={<KlijentNovi />} />
         <Route path={RouteNames.KLIJENT_PROMJENA} element={<KlijentPromjena />} />
+
+        <Route path={RouteNames.GENERIRANJE_PODATAKA} element={<GeneriranjePodataka />} />
 
       </Routes> 
       <hr />

@@ -17,6 +17,8 @@ export const RouteNames = {
     KLIJENT_PREGLED: '/klijenti',
     KLIJENT_NOVI: '/klijenti/novi',
     KLIJENT_PROMJENA: '/klijenti/:sifra',
+
+    GENERIRANJE_PODATAKA: '/generiraj-podatke'
 }
 
 

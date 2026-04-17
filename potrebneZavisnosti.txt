@@ -3,3 +3,6 @@ U terminalu nakon što ste zaustavili aplikaciju (ctrl+c) izvesti:
 npm install react-bootstrap bootstrap
 npm install react-router-dom
 npm install @lottiefiles/dotlottie-react
+
+// faker za generiranje podataka
+npm install @faker-js/faker

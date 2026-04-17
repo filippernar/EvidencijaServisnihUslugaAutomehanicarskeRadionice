@@ -39,6 +39,12 @@ export default function Izbornik() {
 >
     Nalozi
 </NavDropdown.Item>
+
+<NavDropdown.Divider />
+                        
+                        <NavDropdown.Item
+                            onClick={()=>navigate(RouteNames.GENERIRANJE_PODATAKA)}
+                            >Generiraj podatke</NavDropdown.Item>
                             
                         </NavDropdown>
                     </Nav>
