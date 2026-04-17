@@ -115,7 +115,10 @@ export default function NalogPromjena(){
             usluge: odabraneUsluge.map(u => u.sifra)
         })
     }
-
+//IZRAČUNAJ UKUPAN IZNOS ZA PLAĆANJE
+function izracunajUkupno() {
+    return odabraneUsluge.reduce((suma, u) => suma + (parseFloat(u.cijena) || 0), 0);
+}
     return(
          <>
             <h3>Promjena naloga</h3>
@@ -172,7 +175,17 @@ export default function NalogPromjena(){
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
+{/* IZRAČUNAJ UKUPNO*/}
 
+    <div className="mt-4 border-top pt-3">
+        <p className="text-muted mb-0">Ukupan iznos za plaćanje:</p>
+        <h2 className="text-primary fw-bold">
+            {new Intl.NumberFormat('hr-HR', { 
+                style: 'currency', 
+                currency: 'EUR' 
+            }).format(izracunajUkupno())}
+        </h2>
+    </div>
                                 </Card.Body>
                             </Card>
                         </Col>

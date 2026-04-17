@@ -105,9 +105,14 @@ export default function NalogNovi() {
         })
     }
 
+    //IZRAČUNAJ UKUPAN IZNOS ZA PLAĆANJE
+function izracunajUkupno() {
+    return odabraneUsluge.reduce((suma, u) => suma + (parseFloat(u.cijena) || 0), 0);
+}
     return (
         <>
             <h3>Unos novog naloga</h3>
+            
             <Form onSubmit={odradiSubmit}>
                 <Container className="mt-4">
                     <Row>
@@ -137,7 +142,7 @@ export default function NalogNovi() {
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
-
+            
                                     <Form.Group controlId="klijent" className="mb-3">
                                         <Form.Label className="fw-bold">Klijent</Form.Label>
                                         <Form.Select name="klijent" required>
@@ -149,8 +154,19 @@ export default function NalogNovi() {
                                             ))}
                                         </Form.Select>
                                     </Form.Group>
+    
+    {/* IZRAČUNAJ UKUPNO*/}
 
-                                    <h1 className="mt-4">= 1.720,50 €</h1>
+    <div className="mt-4 border-top pt-3">
+        <p className="text-muted mb-0">Ukupan iznos za plaćanje:</p>
+        <h2 className="text-primary fw-bold">
+            {new Intl.NumberFormat('hr-HR', { 
+                style: 'currency', 
+                currency: 'EUR' 
+            }).format(izracunajUkupno())}
+        </h2>
+    </div>
+                                    
                                 </Card.Body>
                             </Card>
                         </Col>

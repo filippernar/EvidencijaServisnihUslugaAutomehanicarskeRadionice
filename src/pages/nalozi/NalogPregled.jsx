@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import NalogService from "../../services/nalozi/NalogService"
 import UslugeService from "../../services/usluge/UslugeService"
 import VoziloService from "../../services/vozilo/VoziloService" 
-import KlijentService from "../../services/klijent/KlijentService" // Dodano
+import KlijentService from "../../services/klijent/KlijentService"
 import { Button, Table } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { RouteNames } from "../../constants"
@@ -14,7 +14,7 @@ export default function NalogPregled(){
     const [nalozi, setNalozi] = useState([])
     const [usluge, setUsluge] = useState([])
     const [vozila, setVozila] = useState([]) 
-    const [klijenti, setKlijenti] = useState([]) // Dodano
+    const [klijenti, setKlijenti] = useState([])
 
     useEffect(()=>{
         ucitajPodatke()
@@ -23,7 +23,7 @@ export default function NalogPregled(){
     async function ucitajPodatke() {
         await ucitajUsluge()
         await ucitajVozila()
-        await ucitajKlijente() // Dodano
+        await ucitajKlijente()
         await ucitajNaloze()
     }
 
@@ -57,7 +57,7 @@ export default function NalogPregled(){
         })
     }
 
-    async function ucitajKlijente() { // Dodano
+    async function ucitajKlijente() {
         await KlijentService.get().then((odgovor)=>{
             if(!odgovor.success){
                 alert('Nije implementiran servis za klijente')
@@ -73,11 +73,12 @@ export default function NalogPregled(){
         ucitajNaloze();
     }
 
+    // --- POMOĆNE FUNKCIJE ---
+
     function dohvatiNaziveUsluga(sifreUsluga) {
         if (!sifreUsluga || !Array.isArray(sifreUsluga) || sifreUsluga.length === 0) {
             return <i className="text-muted">Nema dodanih usluga</i>
         }
-
         return sifreUsluga.map(sifra => {
             const usluga = usluge.find(u => u.sifra === parseInt(sifra));
             return usluga ? usluga.naziv : 'Nepoznata usluga';
@@ -89,9 +90,17 @@ export default function NalogPregled(){
         return vozilo ? `${vozilo.marka} ${vozilo.model} (${vozilo.registracija})` : 'Nepoznato vozilo'
     }
 
-    function dohvatiKlijenta(sifraKlijenta) { // Dodano
+    function dohvatiKlijenta(sifraKlijenta) {
         const klijent = klijenti.find(k => k.sifra === parseInt(sifraKlijenta))
         return klijent ? `${klijent.ime} ${klijent.prezime}` : 'Nepoznat klijent'
+    }
+
+    function izracunajUkupnoPoNalogu(sifreUsluga) {
+        if (!sifreUsluga || !Array.isArray(sifreUsluga)) return 0;
+        return sifreUsluga.reduce((suma, sifra) => {
+            const usluga = usluge.find(u => u.sifra === parseInt(sifra));
+            return suma + (usluga ? parseFloat(usluga.cijena) : 0);
+        }, 0);
     }
 
     return(
@@ -106,8 +115,9 @@ export default function NalogPregled(){
                     <tr>
                         <th>Naziv/Opis naloga</th>
                         <th>Vozilo</th>
-                        <th>Klijent</th> {/* Dodana kolona */}
+                        <th>Klijent</th>
                         <th>Usluge na nalogu</th>
+                        <th>Iznos</th>
                         <th className="text-center">Akcija</th>
                     </tr>
                 </thead>
@@ -116,9 +126,14 @@ export default function NalogPregled(){
                         <tr key={nalog.sifra}>
                             <td className="fw-semibold">{nalog.naziv}</td>
                             <td>{dohvatiVozilo(nalog.vozilo)}</td>
-                            <td>{dohvatiKlijenta(nalog.klijent)}</td> {/* Prikaz klijenta */}
+                            <td>{dohvatiKlijenta(nalog.klijent)}</td>
                             <td>{dohvatiNaziveUsluga(nalog.usluge)}</td>
-                            
+                            <td className="fw-bold">
+                                {new Intl.NumberFormat('hr-HR', { 
+                                    style: 'currency', 
+                                    currency: 'EUR' 
+                                }).format(izracunajUkupnoPoNalogu(nalog.usluge))}
+                            </td>
                             <td className="text-center">
                                 <Button 
                                     variant="primary" 
@@ -126,7 +141,7 @@ export default function NalogPregled(){
                                     onClick={()=>{navigate(`/nalozi/${nalog.sifra}`)}}>
                                     Promjena
                                 </Button>
-                                &nbsp;&nbsp;
+                                &nbsp;
                                 <Button 
                                     variant="danger" 
                                     size="sm" 
@@ -138,7 +153,7 @@ export default function NalogPregled(){
                     ))}
                     {(!nalozi || nalozi.length === 0) && (
                         <tr>
-                            <td colSpan="5" className="text-center">Nema dostupnih naloga</td>
+                            <td colSpan="6" className="text-center">Nema dostupnih naloga</td>
                         </tr>
                     )}
                 </tbody>
