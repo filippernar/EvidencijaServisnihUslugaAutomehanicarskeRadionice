@@ -56,7 +56,7 @@ export default function VoziloPregled(){
                         <td>{vozilo.marka}</td>
                         <td>{vozilo.model}</td>
                         <td>{vozilo.godiste}.</td>
-                        <td>{vozilo.prijedeniKilometri.toLocaleString()} km</td>
+                        <td>{vozilo.prijedeniKilometri} km</td>
                         <td>
                             <Button onClick={()=>{navigate(`/vozila/${vozilo.sifra}`)}}>
                                 Promjeni
