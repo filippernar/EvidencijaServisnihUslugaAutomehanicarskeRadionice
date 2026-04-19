@@ -52,7 +52,7 @@ export default function VoziloPregled(){
             <tbody>
                 {vozila && vozila.map((vozilo)=>(
                     <tr key={vozilo.sifra}>
-                        <td className="lead">{vozilo.registracija}</td>
+                        <td>{vozilo.registracija}</td>
                         <td>{vozilo.marka}</td>
                         <td>{vozilo.model}</td>
                         <td>{vozilo.godiste}.</td>

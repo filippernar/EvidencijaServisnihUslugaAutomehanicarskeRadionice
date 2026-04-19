@@ -6,7 +6,7 @@ import VoziloService from '../services/vozilo/VoziloService';
 import KlijentService from '../services/klijent/KlijentService';
 
 export default function GeneriranjePodataka() {
-    const [brojUsluga, setBrojUsluga] = useState(5);
+    const [brojUsluga, setBrojUsluga] = useState(10);
     const [brojVozila, setBrojVozila] = useState(10);
     const [brojKlijenata, setBrojKlijenata] = useState(10);
     const [poruka, setPoruka] = useState(null);
@@ -61,9 +61,8 @@ export default function GeneriranjePodataka() {
                 marka: marke[faker.number.int({ min: 0, max: marke.length - 1 })],
                 model: faker.vehicle.model(),
                 registracija: faker.vehicle.vrm(),
-                // DODANA POLJA:
                 godiste: godiste, 
-                godinaProizvodnje: godiste, // Često se koristi ovaj naziv, ostavljam oba radi sigurnosti
+                godinaProizvodnje: godiste, 
                 kilometri: faker.number.int({ min: 5000, max: 350000 }),
                 klijent: randomKlijent.sifra
             });

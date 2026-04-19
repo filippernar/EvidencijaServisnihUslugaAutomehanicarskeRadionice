@@ -51,8 +51,8 @@ export default function KlijentPregled(){
             <tbody>
                 {klijenti && klijenti.map((klijent)=>(
                     <tr key={klijent.sifra}>
-                        <td className="lead">{klijent.ime}</td>
-                        <td className="lead">{klijent.prezime}</td>
+                        <td>{klijent.ime}</td>
+                        <td>{klijent.prezime}</td>
                         <td>{klijent.email}</td>
                         <td>{klijent.oib}</td>
                         <td>
