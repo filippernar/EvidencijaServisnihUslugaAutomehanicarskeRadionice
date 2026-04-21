@@ -224,7 +224,7 @@ function izracunajUkupno() {
                                                         onClick={() => dodajUslugu(usluga)}
                                                         onMouseEnter={() => setOdabraniIndex(index)}
                                                     >
-                                                        {usluga.naziv} ({usluga.cijena} €)
+                                                        {usluga.naziv} ({new Intl.NumberFormat('hr-HR', { minimumFractionDigits: 2 }).format(usluga.cijena)} €)
                                                     </div>
                                                 ))}
                                             </div>
@@ -235,14 +235,19 @@ function izracunajUkupno() {
                                         <Table striped bordered hover size="sm">
                                             <thead>
                                                 <tr>
-                                                    <th>Naziv usluge</th>
-                                                    <th style={{width: '80px'}}>Akcija</th>
+                                                    <th>Naziv usluge</th>       
+                                                    <th style={{width: '80px'}}>Cijena</th>  
+                                                    <th style={{width: '80px'}}>Akcija</th> 
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {odabraneUsluge.map(u => (
                                                     <tr key={u.sifra}>
                                                         <td>{u.naziv}</td>
+                                                        {new Intl.NumberFormat('hr-HR', { //dodao cijenu
+                                                        minimumFractionDigits: 2, 
+                                                        maximumFractionDigits: 2 
+                                                        }).format(u.cijena)} €
                                                         <td>
                                                             <Button
                                                                 variant="danger"

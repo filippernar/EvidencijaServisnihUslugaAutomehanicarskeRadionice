@@ -162,7 +162,8 @@ function izracunajUkupno() {
         <h2 className="text-primary fw-bold">
             {new Intl.NumberFormat('hr-HR', { 
                 style: 'currency', 
-                currency: 'EUR' 
+                currency: 'EUR',
+                minimumFractionDigits: 2 
             }).format(izracunajUkupno())}
         </h2>
     </div>
@@ -226,7 +227,10 @@ function izracunajUkupno() {
                                                     {odabraneUsluge.map(u => (
                                                         <tr key={u.sifra}>
                                                             <td>{u.naziv}</td>
-                                                            <td>{u.cijena}</td>
+                                                            {new Intl.NumberFormat('hr-HR', { 
+                                                            minimumFractionDigits: 2, 
+                                                            maximumFractionDigits: 2 
+                                                            }).format(u.cijena)} €
                                                             <td>
                                                                 <Button
                                                                     variant="danger"
