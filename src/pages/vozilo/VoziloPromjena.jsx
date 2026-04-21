@@ -52,7 +52,7 @@ export default function VoziloPromjena(){
             marka: podaci.get('marka'),
             model: podaci.get('model'),
             godiste: godiste,
-            prijedeniKilometri: parseInt(podaci.get('prijedeniKilometri')) || 0
+            kilometri: parseInt(podaci.get('prijedeniKilometri')) || 0
         })
     }
 
@@ -112,7 +112,7 @@ export default function VoziloPromjena(){
                                     <Form.Group controlId="prijedeniKilometri" className="mb-3">
                                         <Form.Label className="fw-bold">Prijeđeni kilometri</Form.Label>
                                         <Form.Control type="number" name="prijedeniKilometri" required 
-                                        defaultValue={vozilo.prijedeniKilometri}/>
+                                        defaultValue={vozilo.kilometri}/>
                                     </Form.Group>
                                 </Col>
                             </Row>

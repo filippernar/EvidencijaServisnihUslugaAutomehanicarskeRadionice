@@ -137,7 +137,7 @@ function izracunajUkupno() {
                                             <option value="">Odaberite vozilo</option>
                                             {vozila && vozila.map((v) => (
                                                 <option key={v.sifra} value={v.sifra}>
-                                                    {v.marka} {v.model} ({v.registracija})
+                                                    {v.marka} {v.model} ({v.registracija}, {v.kilometri})
                                                 </option>
                                             ))}
                                         </Form.Select>

@@ -55,7 +55,7 @@ export default function VoziloNovi(){
             marka: podaci.get('marka'),
             model: podaci.get('model'),
             godiste: godiste,
-            prijedeniKilometri: kilometri
+            kilometri: kilometri
         })
     }
 
