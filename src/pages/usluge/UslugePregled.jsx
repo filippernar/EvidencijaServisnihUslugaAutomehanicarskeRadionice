@@ -9,10 +9,11 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function UslugePregled(){
 
-
     const [usluge, setUsluge] = useState([])
     const navigate = useNavigate();
 
+    // 🔥 Sortiranje samo po NAZIVU
+    const [sortOrder, setSortOrder] = useState("asc")
 
     useEffect(()=>{
         ucitajUsluge()
@@ -26,8 +27,30 @@ export default function UslugePregled(){
                 return
             }
 
-            setUsluge(odgovor.data)
+            setUsluge(sortiraj(odgovor.data, sortOrder))
         })
+    }
+
+    function sortiraj(lista, order) {
+        return [...lista].sort((a, b) => {
+            const A = a.naziv.toLowerCase()
+            const B = b.naziv.toLowerCase()
+
+            if (A < B) return order === "asc" ? -1 : 1
+            if (A > B) return order === "asc" ? 1 : -1
+            return 0
+        })
+    }
+
+    function handleSort() {
+        const newOrder = sortOrder === "asc" ? "desc" : "asc"
+        setSortOrder(newOrder)
+        setUsluge(sortiraj(usluge, newOrder))
+    }
+
+    // 🔥 Strelica uvijek prikazana
+    function ikona() {
+        return sortOrder === "asc" ? " ▲" : " ▼"
     }
 
     async function obrisi(sifra) {
@@ -47,7 +70,9 @@ export default function UslugePregled(){
             <Table striped bordered hover>
                 <thead>
                     <tr>
-                        <th>Naziv</th>              
+                        <th onClick={handleSort} style={{cursor:"pointer"}}>
+                            Naziv{ikona()}
+                        </th>              
                         <th>Trajanje</th>
                         <th>Cijena</th>
                         <th>Datum pokretanja</th>
@@ -73,7 +98,6 @@ export default function UslugePregled(){
                             </td>
                             <td>
                                 <FormatDatuma datum={usluga.datumPokretanja} />
-
                             </td>
                             <td>
                                 <GrValidate 

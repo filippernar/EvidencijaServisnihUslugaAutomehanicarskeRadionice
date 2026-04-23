@@ -9,6 +9,8 @@ export default function KlijentPregled(){
     const navigate = useNavigate()
 
     const [klijenti, setKlijenti] = useState([])
+    const [sortField, setSortField] = useState("prezime") 
+    const [sortOrder, setSortOrder] = useState("asc")     
 
     useEffect(()=>{
         ucitajKlijente()
@@ -20,15 +22,54 @@ export default function KlijentPregled(){
                 alert('Nije implementiran servis')
                 return
             }
-            setKlijenti(odgovor.data)
+
+            setKlijenti(sortiraj(odgovor.data, sortField, sortOrder))
         })
+    }
+
+    function sortiraj(lista, field, order) {
+        return [...lista].sort((a, b) => {
+            const A = a[field].toLowerCase()
+            const B = b[field].toLowerCase()
+
+            if (A < B) return order === "asc" ? -1 : 1
+            if (A > B) return order === "asc" ? 1 : -1
+            return 0
+        })
+    }
+
+    function handleSort(field) {
+        let newOrder = sortOrder
+
+        if (field === sortField) {
+            newOrder = sortOrder === "asc" ? "desc" : "asc"
+            setSortOrder(newOrder)
+        } else {
+            setSortField(field)
+            newOrder = "asc"
+            setSortOrder("asc")
+        }
+
+        setKlijenti(sortiraj(klijenti, field, newOrder))
+    }
+
+    //OBA STUPCA IMAJU ▲ ILI ▼
+    function ikona(field) {
+        const isActive = field === sortField
+
+        if (isActive) {
+            return sortOrder === "asc" ? " ▲" : " ▼"
+        }
+
+        // neaktivni stupac prikazuje SUPROTNU strelicu
+        return sortOrder === "asc" ? " ▼" : " ▲"
     }
 
     async function brisanje(sifra) {
         if (!confirm('Sigurno obrisati?')) return;
         await KlijentService.obrisi(sifra);
         await KlijentService.get().then((odgovor)=>{
-            setKlijenti(odgovor.data)
+            setKlijenti(sortiraj(odgovor.data, sortField, sortOrder))
         })
     }
 
@@ -41,8 +82,12 @@ export default function KlijentPregled(){
         <Table striped bordered hover>
             <thead>
                 <tr>
-                    <th>Ime</th>
-                    <th>Prezime</th>
+                    <th onClick={() => handleSort("ime")} style={{cursor:"pointer"}}>
+                        Ime{ikona("ime")}
+                    </th>
+                    <th onClick={() => handleSort("prezime")} style={{cursor:"pointer"}}>
+                        Prezime{ikona("prezime")}
+                    </th>
                     <th>Email</th>
                     <th>OIB</th>
                     <th>Akcija</th>
