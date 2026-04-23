@@ -3,10 +3,14 @@ import NalogService from "../../services/nalozi/NalogService"
 import UslugeService from "../../services/usluge/UslugeService"
 import VoziloService from "../../services/vozilo/VoziloService" 
 import KlijentService from "../../services/klijent/KlijentService"
-import { Button, Table } from "react-bootstrap"
+import { Button } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { RouteNames } from "../../constants"
 import NalogPDFGenerator from "../../components/NalogPDFGenerator"
+import useBreakpoint from "../../hooks/useBreakpoint"
+
+import NalogPregledTablica from "./NalogPregledTablica"
+import NalogPregledGrid from "./NalogPregledGrid"
 
 export default function NalogPregled(){
 
@@ -16,6 +20,8 @@ export default function NalogPregled(){
     const [usluge, setUsluge] = useState([])
     const [vozila, setVozila] = useState([]) 
     const [klijenti, setKlijenti] = useState([])
+
+    const bp = useBreakpoint()   // xs, sm, md, lg, xl, xxl
 
     useEffect(()=>{
         ucitajPodatke()
@@ -70,9 +76,6 @@ export default function NalogPregled(){
         ucitajNaloze();
     }
 
-    // ---------------------------------------------------------
-    // 🔥 PRAVI PDF GENERATOR – koristi tvoj NalogPDFGenerator.js
-    // ---------------------------------------------------------
     function pokreniPDF(nalog) {
 
         const vozilo = vozila.find(v => v.sifra === nalog.vozilo)
@@ -97,8 +100,6 @@ export default function NalogPregled(){
 
         generirajPDF()
     }
-
-    // --- POMOĆNE FUNKCIJE ---
 
     function dohvatiNaziveUsluga(sifreUsluga) {
         if (!sifreUsluga || sifreUsluga.length === 0) {
@@ -136,56 +137,30 @@ export default function NalogPregled(){
                 Dodavanje novog naloga
             </Link>
 
-            <Table striped bordered hover className="align-middle shadow-sm">
-                <thead>
-                    <tr>
-                        <th>Naziv/Opis naloga</th>
-                        <th>Vozilo</th>
-                        <th>Klijent</th>
-                        <th>Usluge na nalogu</th>
-                        <th>Iznos</th>
-                        <th className="text-center">Akcija</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {nalozi.map(nalog => (
-                        <tr key={nalog.sifra}>
-                            <td className="fw-semibold">{nalog.naziv}</td>
-                            <td>{dohvatiVozilo(nalog.vozilo)}</td>
-                            <td>{dohvatiKlijenta(nalog.klijent)}</td>
-                            <td>{dohvatiNaziveUsluga(nalog.usluge)}</td>
-                            <td className="fw-bold">
-                                {new Intl.NumberFormat('hr-HR', { 
-                                    style: 'currency', 
-                                    currency: 'EUR' 
-                                }).format(izracunajUkupnoPoNalogu(nalog.usluge))}
-                            </td>
-                            <td className="text-center">
-                                <Button 
-                                    variant="primary" 
-                                    size="sm" 
-                                    onClick={()=> navigate(`/nalozi/${nalog.sifra}`)}>
-                                    Promjena
-                                </Button>
-                                &nbsp;
-                                <Button 
-                                    variant="danger" 
-                                    size="sm" 
-                                    onClick={() => brisanje(nalog.sifra)}>
-                                    Obriši
-                                </Button>
-                                &nbsp;
-                                <Button 
-                                    variant="info" 
-                                    size="sm"
-                                    onClick={() => pokreniPDF(nalog)}>
-                                    PDF
-                                </Button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </Table>
+            {/* 🔥 Responsive prikaz */}
+            {['xs', 'sm', 'md'].includes(bp) ? (
+                <NalogPregledGrid 
+                    nalozi={nalozi}
+                    navigate={navigate}
+                    brisanje={brisanje}
+                    pokreniPDF={pokreniPDF}
+                    dohvatiVozilo={dohvatiVozilo}
+                    dohvatiKlijenta={dohvatiKlijenta}
+                    dohvatiNaziveUsluga={dohvatiNaziveUsluga}
+                    izracunajUkupnoPoNalogu={izracunajUkupnoPoNalogu}
+                />
+            ) : (
+                <NalogPregledTablica
+                    nalozi={nalozi}
+                    navigate={navigate}
+                    brisanje={brisanje}
+                    pokreniPDF={pokreniPDF}
+                    dohvatiVozilo={dohvatiVozilo}
+                    dohvatiKlijenta={dohvatiKlijenta}
+                    dohvatiNaziveUsluga={dohvatiNaziveUsluga}
+                    izracunajUkupnoPoNalogu={izracunajUkupnoPoNalogu}
+                />
+            )}
         </>
     )
 }
