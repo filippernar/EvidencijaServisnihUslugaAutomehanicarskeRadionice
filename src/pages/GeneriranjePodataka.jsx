@@ -143,7 +143,7 @@ export default function GeneriranjePodataka() {
             <Row className="mt-3">
                 <Col md={4}><Button variant="outline-danger" onClick={() => obrisiSve(UslugeService, 'Usluge')} disabled={loading} className="w-100 mb-2">Obriši sve usluge</Button></Col>
                 <Col md={4}><Button variant="outline-danger" onClick={() => obrisiSve(KlijentService, 'Klijente')} disabled={loading} className="w-100 mb-2">Obriši sve klijente</Button></Col>
-                <Col md={4}><Button variant="outline-danger" onClick={() => obrisiSve(VoziloService, 'Vozila')} disabled={loading} className="w-100 mb-2">Obriši sve vozila</Button></Col>
+                <Col md={4}><Button variant="outline-danger" onClick={() => obrisiSve(VoziloService, 'Vozila')} disabled={loading} className="w-100 mb-2">Obriši sva vozila</Button></Col>
             </Row>
         </Container>
     );
