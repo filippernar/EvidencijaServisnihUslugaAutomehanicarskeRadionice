@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import VoziloService from "../../services/vozilo/VoziloService"
-import { Button, Table, Pagination } from "react-bootstrap"
+import { Button, Table, Pagination, Form, InputGroup } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { RouteNames } from "../../constants"
+import { FaSearch } from "react-icons/fa"
 
 export default function VoziloPregled(){
 
@@ -10,9 +11,12 @@ export default function VoziloPregled(){
 
     const [vozila, setVozila] = useState([])
 
+    // Pretraga
+    const [searchTerm, setSearchTerm] = useState("")
+
     // Straničenje
     const [currentPage, setCurrentPage] = useState(1)
-    const pageSize = 5  // broj vozila po stranici
+    const pageSize = 5
 
     useEffect(()=>{
         ucitajVozila()
@@ -36,10 +40,22 @@ export default function VoziloPregled(){
         })
     }
 
-    // Izračun stranica
-    const totalPages = Math.ceil(vozila.length / pageSize)
+    // 🔍 Filtriranje vozila
+    const filtriranaVozila = vozila.filter(v => {
+        const term = searchTerm.toLowerCase()
+        return (
+            v.registracija.toLowerCase().includes(term) ||
+            v.marka.toLowerCase().includes(term) ||
+            v.model.toLowerCase().includes(term) ||
+            (v.godiste + "").includes(term) ||
+            (v.kilometri + "").includes(term)
+        )
+    })
 
-    const prikazanaVozila = vozila.slice(
+    // Izračun stranica
+    const totalPages = Math.ceil(filtriranaVozila.length / pageSize)
+
+    const prikazanaVozila = filtriranaVozila.slice(
         (currentPage - 1) * pageSize,
         currentPage * pageSize
     )
@@ -49,12 +65,28 @@ export default function VoziloPregled(){
         setCurrentPage(page)
     }
 
+    function handleSearchChange(e) {
+        setSearchTerm(e.target.value)
+        setCurrentPage(1) // reset na prvu stranicu
+    }
+
     return(
         <>
         <Link to={RouteNames.VOZILA_NOVI}
         className="btn btn-success w-100 my-3">
             Dodavanje novog vozila
         </Link>
+
+        {/* Search bar */}
+        <InputGroup className="mb-3">
+            <InputGroup.Text><FaSearch /></InputGroup.Text>
+            <Form.Control
+                type="text"
+                placeholder="Pretraži vozila (registracija, marka, model)..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+            />
+        </InputGroup>
 
         <Table striped bordered hover responsive>
             <thead>
@@ -89,9 +121,12 @@ export default function VoziloPregled(){
             </tbody>
         </Table>
 
-        {/*  Bootstrap Pagination */}
+        {/* Pagination */}
         <Pagination className="justify-content-center">
-            <Pagination.Prev onClick={() => promijeniStranicu(currentPage - 1)} disabled={currentPage === 1} />
+            <Pagination.Prev 
+                onClick={() => promijeniStranicu(currentPage - 1)} 
+                disabled={currentPage === 1} 
+            />
 
             {[...Array(totalPages)].map((_, i) => (
                 <Pagination.Item
@@ -103,7 +138,10 @@ export default function VoziloPregled(){
                 </Pagination.Item>
             ))}
 
-            <Pagination.Next onClick={() => promijeniStranicu(currentPage + 1)} disabled={currentPage === totalPages} />
+            <Pagination.Next 
+                onClick={() => promijeniStranicu(currentPage + 1)} 
+                disabled={currentPage === totalPages} 
+            />
         </Pagination>
 
         </>
