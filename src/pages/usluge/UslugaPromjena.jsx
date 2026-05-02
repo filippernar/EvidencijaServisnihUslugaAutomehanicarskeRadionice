@@ -3,15 +3,16 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import UslugeService from "../../services/usluge/UslugeService"
 import { Button, Col, Form, Row, Container, Card } from "react-bootstrap"
 import { RouteNames } from "../../constants"
+import { ShemaUsluga } from "../../schemas/ShemaUsluga"
 
 export default function UslugaPromjena(){
 
     const navigate = useNavigate()
     const params = useParams()
-    
-    // Postavljamo na null kako bismo znali kada su podaci stigli s backend-a
-    const [usluga, setUsluga] = useState(null) 
+
+    const [usluga, setUsluga] = useState(null)
     const [aktivan, setAktivan] = useState(false)
+    const [errors, setErrors] = useState({})
 
     useEffect(()=>{
         ucitajUslugu()
@@ -23,13 +24,15 @@ export default function UslugaPromjena(){
                 alert('Nije moguće učitati podatke o usluzi.')
                 return
             }
+
             const s = odgovor.data
-            // Formatiranje datuma za HTML input type="date"
+
             if (s.datumPokretanja) {
                 s.datumPokretanja = s.datumPokretanja.substring(0,10)
             }
+
             setUsluga(s)
-            setAktivan(s.aktivan)
+            setAktivan(s.aktivan) // ostaje potpuno netaknuto
         })
     }
 
@@ -42,45 +45,63 @@ export default function UslugaPromjena(){
     function odradiSubmit(e){
         e.preventDefault()
         const podaci = new FormData(e.target)
+        const objekt = Object.fromEntries(podaci)
 
-        // --- VALIDACIJA ---
-        if (!podaci.get('naziv')?.trim() || podaci.get('naziv').trim().length < 3) {
-            alert("Naziv usluge mora imati najmanje 3 znaka!");
-            return;
+        // Pretvorbe brojeva
+        objekt.trajanje = parseInt(objekt.trajanje) || 0
+        objekt.cijena = parseFloat(objekt.cijena)
+
+        // Datum
+        if (objekt.datumPokretanja) {
+            objekt.datumPokretanja = new Date(objekt.datumPokretanja).toISOString()
         }
 
-        const cijena = parseFloat(podaci.get('cijena'));
-        if (isNaN(cijena) || cijena < 0) {
-            alert("Cijena mora biti pozitivan broj!");
-            return;
+        // AKTIVAN — ostaje iz state-a, ne dira se
+        objekt.aktivan = aktivan
+
+        // --- ZOD VALIDACIJA (bez aktivan) ---
+        const rezultat = ShemaUsluga.safeParse(objekt)
+
+        if (!rezultat.success) {
+            const nove = {}
+            rezultat.error.issues.forEach(issue => {
+                const key = issue.path[0]
+                if (!nove[key]) nove[key] = issue.message
+            })
+            setErrors(nove)
+            return
         }
 
-        promjeni({
-            naziv: podaci.get('naziv'),
-            trajanje: parseInt(podaci.get('trajanje')) || 0,
-            cijena: cijena,
-            datumPokretanja: podaci.get('datumPokretanja') ? new Date(podaci.get('datumPokretanja')).toISOString() : null,
-            aktivan: aktivan // koristimo stanje iz switch-a
-        })
+        setErrors({})
+        promjeni(rezultat.data)
     }
 
-    // --- KLJUČNI DIO: Zaštita od renderiranja praznih podataka ---
+    const ocistiGresku = (polje) => {
+        if (errors[polje]) {
+            const nove = { ...errors }
+            delete nove[polje]
+            setErrors(nove)
+        }
+    }
+
     if (!usluga) {
         return (
             <Container className="text-center mt-5">
                 <p>Učitavam podatke o usluzi...</p>
             </Container>
-        );
+        )
     }
 
     return(
-         <>
+        <>
             <h3>Promjena usluge</h3>
             <Form onSubmit={odradiSubmit}>
                 <Container className="mt-4">
                     <Card className="shadow-sm">
                         <Card.Body>
-                            <Card.Title className="mb-4">Podaci o usluzi: {usluga.naziv}</Card.Title>
+                            <Card.Title className="mb-4">
+                                Podaci o usluzi: {usluga.naziv}
+                            </Card.Title>
 
                             <Row>
                                 <Col xs={12}>
@@ -90,8 +111,12 @@ export default function UslugaPromjena(){
                                             type="text"
                                             name="naziv"
                                             defaultValue={usluga.naziv}
-                                            required
+                                            isInvalid={!!errors.naziv}
+                                            onFocus={() => ocistiGresku('naziv')}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.naziv}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
                             </Row>
@@ -104,9 +129,15 @@ export default function UslugaPromjena(){
                                             type="number"
                                             name="trajanje"
                                             defaultValue={usluga.trajanje}
+                                            isInvalid={!!errors.trajanje}
+                                            onFocus={() => ocistiGresku('trajanje')}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.trajanje}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
+
                                 <Col md={6}>
                                     <Form.Group controlId="cijena" className="mb-3">
                                         <Form.Label className="fw-bold">Cijena (€)</Form.Label>
@@ -115,7 +146,12 @@ export default function UslugaPromjena(){
                                             step="0.01"
                                             name="cijena"
                                             defaultValue={usluga.cijena}
+                                            isInvalid={!!errors.cijena}
+                                            onFocus={() => ocistiGresku('cijena')}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.cijena}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
                             </Row>
@@ -128,10 +164,18 @@ export default function UslugaPromjena(){
                                             type="date"
                                             name="datumPokretanja"
                                             defaultValue={usluga.datumPokretanja}
-                                            onClick={(e) => e.target.showPicker()}
+                                            isInvalid={!!errors.datumPokretanja}
+                                            onFocus={(e) => {
+                                                ocistiGresku('datumPokretanja')
+                                                e.target.showPicker()
+                                            }}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.datumPokretanja}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
+
                                 <Col md={6}>
                                     <Form.Group controlId="aktivan" className="mb-3 mt-md-3">
                                         <Form.Check

@@ -2,33 +2,36 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import NalogService from "../../services/nalozi/NalogService"
 import UslugaService from "../../services/usluge/UslugeService"
-import VoziloService from "../../services/vozilo/VoziloService" 
-import KlijentService from "../../services/klijent/KlijentService" // Dodano
+import VoziloService from "../../services/vozilo/VoziloService"
+import KlijentService from "../../services/klijent/KlijentService"
 import { Button, Col, Form, Row, Container, Card, Table } from "react-bootstrap"
 import { RouteNames } from "../../constants"
+import { ShemaNalog } from "../../schemas/ShemaNalog"
 
 export default function NalogPromjena(){
 
     const navigate = useNavigate()
     const params = useParams()
+
     const [nalog, setNalog] = useState({})
     const [usluge, setUsluge] = useState([])
-    const [vozila, setVozila] = useState([]) 
-    const [klijenti, setKlijenti] = useState([]) // Dodano
-    
+    const [vozila, setVozila] = useState([])
+    const [klijenti, setKlijenti] = useState([])
+
     const [odabraneUsluge, setOdabraneUsluge] = useState([])
     const [pretragaUsluga, setPretragaUsluga] = useState('')
     const [prikaziAutocomplete, setPrikaziAutocomplete] = useState(false)
     const [odabraniIndex, setOdabraniIndex] = useState(-1)
 
+    const [errors, setErrors] = useState({})
+
     useEffect(()=>{
         ucitajNalog()
         ucitajUsluge()
-        ucitajVozila() 
-        ucitajKlijente() // Dodano
+        ucitajVozila()
+        ucitajKlijente()
     },[])
 
-    // Sinkronizacija odabranih usluga kada se nalog i sve usluge učitaju
     useEffect(() => {
         if (nalog.usluge && usluge.length > 0) {
             const odabrane = usluge.filter(u => nalog.usluge.includes(u.sifra))
@@ -43,20 +46,20 @@ export default function NalogPromjena(){
     }
 
     async function ucitajUsluge() {
-        await UslugaService.get().then((odgovor) => {
-            if (odgovor.success) setUsluge(odgovor.data)
+        await UslugaService.get().then((odgovor)=>{
+            if(odgovor.success) setUsluge(odgovor.data)
         })
     }
 
     async function ucitajVozila() {
-        await VoziloService.get().then((odgovor) => {
-            if (odgovor.success) setVozila(odgovor.data)
+        await VoziloService.get().then((odgovor)=>{
+            if(odgovor.success) setVozila(odgovor.data)
         })
     }
 
-    async function ucitajKlijente() { // Dodano
-        await KlijentService.get().then((odgovor) => {
-            if (odgovor.success) setKlijenti(odgovor.data)
+    async function ucitajKlijente() {
+        await KlijentService.get().then((odgovor)=>{
+            if(odgovor.success) setKlijenti(odgovor.data)
         })
     }
 
@@ -75,7 +78,7 @@ export default function NalogPromjena(){
 
     function filtrirajUsluge() {
         if (!pretragaUsluga) return []
-        return usluge.filter(u => 
+        return usluge.filter(u =>
             !odabraneUsluge.find(ou => ou.sifra === u.sifra) &&
             u.naziv.toLowerCase().includes(pretragaUsluga.toLowerCase())
         )
@@ -107,90 +110,126 @@ export default function NalogPromjena(){
     function odradiSubmit(e){
         e.preventDefault()
         const podaci = new FormData(e.target)
+        const objekt = Object.fromEntries(podaci)
 
-        promjeni({
-            naziv: podaci.get('naziv'),
-            vozilo: parseInt(podaci.get('vozilo')),
-            klijent: parseInt(podaci.get('klijent')), // Dodano
-            usluge: odabraneUsluge.map(u => u.sifra)
-        })
+        objekt.vozilo = parseInt(objekt.vozilo)
+        objekt.klijent = parseInt(objekt.klijent)
+        objekt.usluge = odabraneUsluge.map(u => u.sifra)
+
+        const rezultat = ShemaNalog.safeParse(objekt)
+
+        if (!rezultat.success) {
+            const nove = {}
+            rezultat.error.issues.forEach(issue => {
+                const key = issue.path[0]
+                if (!nove[key]) nove[key] = issue.message
+            })
+            setErrors(nove)
+            return
+        }
+
+        setErrors({})
+        promjeni(rezultat.data)
     }
-//IZRAČUNAJ UKUPAN IZNOS ZA PLAĆANJE
-function izracunajUkupno() {
-    return odabraneUsluge.reduce((suma, u) => suma + (parseFloat(u.cijena) || 0), 0);
-}
+
+    const ocistiGresku = (polje) => {
+        if (errors[polje]) {
+            const nove = { ...errors }
+            delete nove[polje]
+            setErrors(nove)
+        }
+    }
+
+    function izracunajUkupno() {
+        return odabraneUsluge.reduce((suma, u) => suma + (parseFloat(u.cijena) || 0), 0)
+    }
+
     return(
-         <>
+        <>
             <h3>Promjena naloga</h3>
             <Form onSubmit={odradiSubmit}>
                 <Container className="mt-4">
                     <Row>
-                        {/* LIJEVA STRANA: Podaci o nalogu */}
                         <Col md={6}>
                             <Card className="shadow-sm">
                                 <Card.Body>
-                                    <Card.Title className="mb-4">Podaci o nalogu br. {nalog.sifra}</Card.Title>
-                                    
+                                    <Card.Title className="mb-4">
+                                        Podaci o nalogu br. {nalog.sifra}
+                                    </Card.Title>
+
                                     <Form.Group controlId="naziv" className="mb-3">
                                         <Form.Label className="fw-bold">Naziv/Opis naloga</Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="naziv"
                                             defaultValue={nalog.naziv}
-                                            required
+                                            isInvalid={!!errors.naziv}
+                                            onFocus={() => ocistiGresku('naziv')}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.naziv}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
 
                                     <Form.Group controlId="vozilo" className="mb-3">
                                         <Form.Label className="fw-bold">Vozilo</Form.Label>
-                                        <Form.Select 
-                                            name="vozilo" 
-                                            required 
-                                            value={nalog.vozilo || ''} 
-                                            onChange={(e) => setNalog({...nalog, vozilo: parseInt(e.target.value)})}
+                                        <Form.Select
+                                            name="vozilo"
+                                            value={nalog.vozilo || ''}
+                                            onChange={(e) => {
+                                                ocistiGresku('vozilo')
+                                                setNalog({...nalog, vozilo: parseInt(e.target.value)})
+                                            }}
+                                            isInvalid={!!errors.vozilo}
                                         >
                                             <option value="">Odaberite vozilo</option>
-                                            {vozila && vozila.map((v) => (
+                                            {vozila.map(v => (
                                                 <option key={v.sifra} value={v.sifra}>
                                                     {v.marka} {v.model} ({v.registracija})
                                                 </option>
                                             ))}
                                         </Form.Select>
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.vozilo}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
 
-                                    {/* DODANO: Izbornik za klijenta */}
                                     <Form.Group controlId="klijent" className="mb-3">
                                         <Form.Label className="fw-bold">Klijent</Form.Label>
-                                        <Form.Select 
-                                            name="klijent" 
-                                            required 
-                                            value={nalog.klijent || ''} 
-                                            onChange={(e) => setNalog({...nalog, klijent: parseInt(e.target.value)})}
+                                        <Form.Select
+                                            name="klijent"
+                                            value={nalog.klijent || ''}
+                                            onChange={(e) => {
+                                                ocistiGresku('klijent')
+                                                setNalog({...nalog, klijent: parseInt(e.target.value)})
+                                            }}
+                                            isInvalid={!!errors.klijent}
                                         >
                                             <option value="">Odaberite klijenta</option>
-                                            {klijenti && klijenti.map((k) => (
+                                            {klijenti.map(k => (
                                                 <option key={k.sifra} value={k.sifra}>
                                                     {k.ime} {k.prezime}
                                                 </option>
                                             ))}
                                         </Form.Select>
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.klijent}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
-{/* IZRAČUNAJ UKUPNO*/}
 
-    <div className="mt-4 border-top pt-3">
-        <p className="text-muted mb-0">Ukupan iznos za plaćanje:</p>
-        <h2 className="text-primary fw-bold">
-            {new Intl.NumberFormat('hr-HR', { 
-                style: 'currency', 
-                currency: 'EUR' 
-            }).format(izracunajUkupno())}
-        </h2>
-    </div>
+                                    <div className="mt-4 border-top pt-3">
+                                        <p className="text-muted mb-0">Ukupan iznos za plaćanje:</p>
+                                        <h2 className="text-primary fw-bold">
+                                            {new Intl.NumberFormat('hr-HR', {
+                                                style: 'currency',
+                                                currency: 'EUR'
+                                            }).format(izracunajUkupno())}
+                                        </h2>
+                                    </div>
                                 </Card.Body>
                             </Card>
                         </Col>
 
-                        {/* DESNA STRANA: Usluge */}
                         <Col md={6}>
                             <Card className="shadow-sm">
                                 <Card.Body>
@@ -206,12 +245,19 @@ function izracunajUkupno() {
                                                 setPretragaUsluga(e.target.value)
                                                 setPrikaziAutocomplete(e.target.value.length > 0)
                                                 setOdabraniIndex(-1)
+                                                ocistiGresku('usluge')
                                             }}
                                             onFocus={() => setPrikaziAutocomplete(pretragaUsluga.length > 0)}
                                             onKeyDown={handleKeyDown}
+                                            isInvalid={!!errors.usluge}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.usluge}
+                                        </Form.Control.Feedback>
+
                                         {prikaziAutocomplete && filtrirajUsluge().length > 0 && (
-                                            <div className="position-absolute w-100 bg-white border rounded shadow-sm" style={{zIndex: 1000, maxHeight: '200px', overflowY: 'auto'}}>
+                                            <div className="position-absolute w-100 bg-white border rounded shadow-sm"
+                                                 style={{zIndex: 1000, maxHeight: '200px', overflowY: 'auto'}}>
                                                 {filtrirajUsluge().map((usluga, index) => (
                                                     <div
                                                         key={usluga.sifra}
@@ -224,7 +270,9 @@ function izracunajUkupno() {
                                                         onClick={() => dodajUslugu(usluga)}
                                                         onMouseEnter={() => setOdabraniIndex(index)}
                                                     >
-                                                        {usluga.naziv} ({new Intl.NumberFormat('hr-HR', { minimumFractionDigits: 2 }).format(usluga.cijena)} €)
+                                                        {usluga.naziv} ({new Intl.NumberFormat('hr-HR', {
+                                                            minimumFractionDigits: 2
+                                                        }).format(usluga.cijena)} €)
                                                     </div>
                                                 ))}
                                             </div>
@@ -234,34 +282,37 @@ function izracunajUkupno() {
                                     <div style={{overflow: 'auto', maxHeight: '300px'}}>
                                         <Table striped bordered hover size="sm">
                                             <thead>
-                                                <tr>
-                                                    <th>Naziv usluge</th>       
-                                                    <th style={{width: '80px'}}>Cijena</th>  
-                                                    <th style={{width: '80px'}}>Akcija</th> 
-                                                </tr>
+                                            <tr>
+                                                <th>Naziv usluge</th>
+                                                <th style={{width: '80px'}}>Cijena</th>
+                                                <th style={{width: '80px'}}>Akcija</th>
+                                            </tr>
                                             </thead>
                                             <tbody>
-                                                {odabraneUsluge.map(u => (
-                                                    <tr key={u.sifra}>
-                                                        <td>{u.naziv}</td>
-                                                        {new Intl.NumberFormat('hr-HR', { //dodao cijenu
-                                                        minimumFractionDigits: 2, 
-                                                        maximumFractionDigits: 2 
+                                            {odabraneUsluge.map(u => (
+                                                <tr key={u.sifra}>
+                                                    <td>{u.naziv}</td>
+                                                    <td>
+                                                        {new Intl.NumberFormat('hr-HR', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
                                                         }).format(u.cijena)} €
-                                                        <td>
-                                                            <Button
-                                                                variant="danger"
-                                                                size="sm"
-                                                                onClick={() => ukloniUslugu(u.sifra)}
-                                                            >
-                                                                Obriši
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
+                                                    </td>
+                                                    <td>
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            onClick={() => ukloniUslugu(u.sifra)}
+                                                        >
+                                                            Obriši
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                             </tbody>
                                         </Table>
                                     </div>
+
                                     {odabraneUsluge.length === 0 && (
                                         <p className="text-muted text-center">Nema odabranih usluga</p>
                                     )}
@@ -270,7 +321,7 @@ function izracunajUkupno() {
                         </Col>
                     </Row>
 
-                    <hr className="my-4" />
+                    <hr className="my-4"/>
 
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end">
                         <Link to={RouteNames.NALOZI} className="btn btn-danger px-4">Odustani</Link>
