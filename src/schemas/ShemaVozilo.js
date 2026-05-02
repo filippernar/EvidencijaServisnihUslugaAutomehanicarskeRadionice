@@ -55,9 +55,10 @@ export const ShemaVozilo = z.object({
     .max(new Date().getFullYear() + 1, "Godište ne može biti u dalekoj budućnosti!"),
 
   kilometri: z.coerce
-    .number({
-      invalid_type_error: "Kilometri moraju biti broj!",
-      required_error: "Kilometri su obavezni!"
-    })
-    .min(0, "Kilometri ne mogu biti negativni!")
+  .number({
+    invalid_type_error: "Kilometri moraju biti broj!",
+    required_error: "Kilometri su obavezni!"
+  })
+  .min(1, "Kilometri moraju biti veći od 0!")
+
 });
