@@ -9,3 +9,10 @@ npm install @faker-js/faker
 
 // PDF
 npm install jspdf jspdf-autotable
+
+
+// generiranje wod dokumenta
+npm install docx
+
+// kontrole
+npm install zed
