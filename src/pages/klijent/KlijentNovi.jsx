@@ -1,11 +1,14 @@
+import { useState } from "react"
 import { Button, Col, Form, Row } from "react-bootstrap"
 import { RouteNames } from "../../constants"
 import { Link, useNavigate } from "react-router-dom"
 import KlijentService from "../../services/klijent/KlijentService"
+import { ShemaKlijent } from "../../schemas/ShemaKlijent"
 
 export default function KlijentNovi(){
 
     const navigate = useNavigate()
+    const [errors, setErrors] = useState({})
 
     async function dodaj(klijent){
         await KlijentService.dodaj(klijent).then(()=>{
@@ -16,92 +19,88 @@ export default function KlijentNovi(){
     function odradiSubmit(e){ 
         e.preventDefault() 
         const podaci = new FormData(e.target)
+        const objekt = Object.fromEntries(podaci)
 
-        // --- KONTROLA 1: Ime (Postojanje) ---
-        if (!podaci.get('ime') || podaci.get('ime').trim().length === 0) {
-            alert("Ime je obavezno i ne smije sadržavati samo razmake!");
-            return;
+        const rezultat = ShemaKlijent.safeParse(objekt)
+
+        if (!rezultat.success) {
+            const nove = {}
+            rezultat.error.issues.forEach(issue => {
+                const key = issue.path[0]
+                if (!nove[key]) nove[key] = issue.message
+            })
+            setErrors(nove)
+            return
         }
 
-        // --- KONTROLA 2: Ime (Minimalna duljina) ---
-        if (podaci.get('ime').trim().length < 2) {
-            alert("Ime mora imati najmanje 2 znaka!");
-            return;
-        }
+        setErrors({})
+        dodaj(rezultat.data)
+    }
 
-        // --- KONTROLA 3: Prezime (Postojanje) ---
-        if (!podaci.get('prezime') || podaci.get('prezime').trim().length === 0) {
-            alert("Prezime je obavezno i ne smije sadržavati samo razmake!");
-            return;
+    const ocistiGresku = (polje) => {
+        if (errors[polje]) {
+            const nove = { ...errors }
+            delete nove[polje]
+            setErrors(nove)
         }
-
-        // --- KONTROLA 4: Prezime (Minimalna duljina) ---
-        if (podaci.get('prezime').trim().length < 2) {
-            alert("Prezime mora imati najmanje 2 znaka!");
-            return;
-        }
-
-        // --- KONTROLA 5: Email (Postojanje) ---
-        if (!podaci.get('email') || podaci.get('email').trim().length === 0) {
-            alert("Email je obavezan!");
-            return;
-        }
-
-        // --- KONTROLA 6: Email (Format) ---
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(podaci.get('email'))) {
-            alert("Email nije u ispravnom formatu!");
-            return;
-        }
-
-        // --- KONTROLA 7: OIB (Postojanje) ---
-        if (!podaci.get('oib') || podaci.get('oib').trim().length === 0) {
-            alert("OIB je obavezan!");
-            return;
-        }
-
-        // --- KONTROLA 8: OIB (Duljina) ---
-        if (podaci.get('oib').trim().length !== 11) {
-            alert("OIB mora imati točno 11 znamenki!");
-            return;
-        }
-
-        // --- KONTROLA 9: OIB (Samo brojevi) ---
-        if (!/^\d+$/.test(podaci.get('oib'))) {
-            alert("OIB smije sadržavati samo brojeve!");
-            return;
-        }
-
-        dodaj({
-            ime: podaci.get('ime'),
-            prezime: podaci.get('prezime'),
-            email: podaci.get('email'),
-            oib: podaci.get('oib')
-        })
     }
 
     return (
         <>
             <h3>Unos novog klijenta</h3>
             <Form onSubmit={odradiSubmit}>
+
                 <Form.Group controlId="ime">
                     <Form.Label>Ime</Form.Label>
-                    <Form.Control type="text" name="ime" required />
+                    <Form.Control
+                        type="text"
+                        name="ime"
+                        isInvalid={!!errors.ime}
+                        onFocus={() => ocistiGresku("ime")}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                        {errors.ime}
+                    </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group controlId="prezime" className="mt-2">
                     <Form.Label>Prezime</Form.Label>
-                    <Form.Control type="text" name="prezime" required />
+                    <Form.Control
+                        type="text"
+                        name="prezime"
+                        isInvalid={!!errors.prezime}
+                        onFocus={() => ocistiGresku("prezime")}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                        {errors.prezime}
+                    </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group controlId="email" className="mt-2">
                     <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" name="email" required />
+                    <Form.Control
+                        type="email"
+                        name="email"
+                        isInvalid={!!errors.email}
+                        onFocus={() => ocistiGresku("email")}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                        {errors.email}
+                    </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group controlId="oib" className="mt-2">
                     <Form.Label>OIB</Form.Label>
-                    <Form.Control type="text" name="oib" required maxLength={11} />
+                    <Form.Control
+                        type="text"
+                        name="oib"
+                        maxLength={11}
+                        isInvalid={!!errors.oib}
+                        onFocus={() => ocistiGresku("oib")}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                        {errors.oib}
+                    </Form.Control.Feedback>
                 </Form.Group>
 
                 <Row className="mt-4">

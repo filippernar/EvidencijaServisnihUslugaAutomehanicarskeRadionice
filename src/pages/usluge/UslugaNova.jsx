@@ -2,12 +2,14 @@ import { Form, Button, Row, Col, Container, Card } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { RouteNames } from "../../constants";
 import UslugeService from "../../services/usluge/UslugeService";
-import { useState } from "react"; 
+import { useState } from "react";
+import { ShemaUsluga } from "../../schemas/ShemaUsluga";
 
 export default function UslugaNova() {
+
     const navigate = useNavigate();
-    
-    const [aktivan, setAktivan] = useState(true); 
+    const [aktivan, setAktivan] = useState(true);
+    const [errors, setErrors] = useState({});
 
     async function dodaj(usluga) {
         await UslugeService.dodaj(usluga).then(() => {
@@ -18,50 +20,36 @@ export default function UslugaNova() {
     function odradiSubmit(e) {
         e.preventDefault();
         const podaci = new FormData(e.target);
+        const objekt = Object.fromEntries(podaci);
 
-        // --- KONTROLE ---
-        if (!podaci.get('naziv') || podaci.get('naziv').trim().length === 0) {
-            alert("Naziv je obavezan!");
+        // Pretvorbe brojeva
+        objekt.trajanje = parseInt(objekt.trajanje);
+        objekt.cijena = parseFloat(objekt.cijena);
+        objekt.aktivan = aktivan;
+
+        const rezultat = ShemaUsluga.safeParse(objekt);
+
+        if (!rezultat.success) {
+            const nove = {};
+            rezultat.error.issues.forEach(issue => {
+                const key = issue.path[0];
+                if (!nove[key]) nove[key] = issue.message;
+            });
+            setErrors(nove);
             return;
         }
 
-        if (podaci.get('naziv').trim().length < 3) {
-            alert("Naziv usluge mora imati najmanje 3 znaka!");
-            return;
-        }
-
-        const trajanje = parseInt(podaci.get('trajanje'));
-        if (isNaN(trajanje) || trajanje < 1 || trajanje > 500) {
-            alert("Trajanje mora biti broj između 1 i 500 sati!");
-            return;
-        }
-
-        const cijena = parseFloat(podaci.get('cijena'));
-        if (isNaN(cijena) || cijena < 0) {
-            alert("Cijena mora biti pozitivan broj!");
-            return;
-        }
-
-        const datumRaw = podaci.get('datumPokretanja');
-        if (!datumRaw) {
-            alert("Morate odabrati datum!");
-            return;
-        }
-
-        const odabraniDatum = new Date(datumRaw);
-        if (isNaN(odabraniDatum.getTime())) {
-            alert("Neispravan datum!");
-            return;
-        }
-
-        dodaj({
-            naziv: podaci.get('naziv'),
-            trajanje: trajanje,
-            cijena: cijena,
-            datumPokretanja: odabraniDatum.toISOString(),
-            aktivan: aktivan 
-        });
+        setErrors({});
+        dodaj(rezultat.data);
     }
+
+    const ocistiGresku = (polje) => {
+        if (errors[polje]) {
+            const nove = { ...errors };
+            delete nove[polje];
+            setErrors(nove);
+        }
+    };
 
     return (
         <>
@@ -81,8 +69,12 @@ export default function UslugaNova() {
                                             type="text"
                                             name="naziv"
                                             placeholder="Unesite naziv usluge"
-                                            required
+                                            isInvalid={!!errors.naziv}
+                                            onFocus={() => ocistiGresku("naziv")}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.naziv}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
                             </Row>
@@ -96,7 +88,12 @@ export default function UslugaNova() {
                                             name="trajanje"
                                             step={1}
                                             placeholder="0"
+                                            isInvalid={!!errors.trajanje}
+                                            onFocus={() => ocistiGresku("trajanje")}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.trajanje}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
 
@@ -108,7 +105,12 @@ export default function UslugaNova() {
                                             name="cijena"
                                             step={0.01}
                                             placeholder="0,00"
+                                            isInvalid={!!errors.cijena}
+                                            onFocus={() => ocistiGresku("cijena")}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.cijena}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
                             </Row>
@@ -121,8 +123,15 @@ export default function UslugaNova() {
                                             type="date"
                                             name="datumPokretanja"
                                             onClick={(e) => e.target.showPicker()}
-                                            onFocus={(e) => e.target.showPicker()}
+                                            onFocus={(e) => {
+                                                e.target.showPicker();
+                                                ocistiGresku("datumPokretanja");
+                                            }}
+                                            isInvalid={!!errors.datumPokretanja}
                                         />
+                                        <Form.Control.Feedback type="invalid">
+                                            {errors.datumPokretanja}
+                                        </Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
 
@@ -133,7 +142,7 @@ export default function UslugaNova() {
                                             label="Usluga je aktivna"
                                             name="aktivan"
                                             className="fs-5"
-                                            checked={aktivan} 
+                                            checked={aktivan}
                                             onChange={(e) => setAktivan(e.target.checked)}
                                         />
                                     </Form.Group>
