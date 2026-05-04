@@ -39,4 +39,7 @@ export const usluge = [
         aktivan: false, 
         datumPokretanja: '2023-05-10'
     }
-];
+]
+export default{
+    usluge
+};

@@ -27,16 +27,24 @@ export default function KlijentPregled(){
         })
     }
 
-    function sortiraj(lista, field, order) {
-        return [...lista].sort((a, b) => {
-            const A = a[field].toLowerCase()
-            const B = b[field].toLowerCase()
+    function sortiraj(podaci) {
+    podaci.sort((a, b) => {
+        // Dodajemo '|| ""' kako bi spriječili pucanje ako je ime ili prezime null/undefined
+        const prezimeA = (a.prezime || "").toLowerCase();
+        const prezimeB = (b.prezime || "").toLowerCase();
+        const imeA = (a.ime || "").toLowerCase();
+        const imeB = (b.ime || "").toLowerCase();
 
-            if (A < B) return order === "asc" ? -1 : 1
-            if (A > B) return order === "asc" ? 1 : -1
-            return 0
-        })
-    }
+        if (prezimeA < prezimeB) return -1;
+        if (prezimeA > prezimeB) return 1;
+        
+        if (imeA < imeB) return -1;
+        if (imeA > imeB) return 1;
+        
+        return 0;
+    });
+    return podaci;
+}
 
     function handleSort(field) {
         let newOrder = sortOrder

@@ -40,3 +40,6 @@ export const vozila = [
         prijedeniKilometri: 8000
     }
 ]
+export default{
+    vozila
+}

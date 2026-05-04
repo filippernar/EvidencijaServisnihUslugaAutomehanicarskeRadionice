@@ -1,9 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Form, Alert, Container, Row, Col } from 'react-bootstrap';
-import { fakerHR as faker } from '@faker-js/faker';
+import { Faker, hr, en } from '@faker-js/faker';
+
 import UslugeService from '../services/usluge/UslugeService';
 import VoziloService from '../services/vozilo/VoziloService';
 import KlijentService from '../services/klijent/KlijentService';
+
+import { DATA_SOURCE, IME_APLIKACIJE, PrefixStorage } from '../constants';
+import uslugeMemorija from '../services/usluge/UslugePodaci';
+import klijentiMemorija from '../services/klijent/KlijentPodaci';
+import vozilaMemorija from '../services/vozilo/VoziloPodaci';
+
+// Ispravan faker: HR + EN fallback
+const faker = new Faker({
+    locale: [hr, en]
+});
 
 export default function GeneriranjePodataka() {
     const [brojUsluga, setBrojUsluga] = useState(10);
@@ -11,6 +22,10 @@ export default function GeneriranjePodataka() {
     const [brojKlijenata, setBrojKlijenata] = useState(10);
     const [poruka, setPoruka] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => { 
+        document.title = 'Generiranje podataka, ' + IME_APLIKACIJE;
+    }, []);
 
     // --- GENERATORI ---
 
@@ -23,8 +38,9 @@ export default function GeneriranjePodataka() {
 
         for (let i = 0; i < broj; i++) {
             await UslugeService.dodaj({
-                naziv: naziviUsluga[i % naziviUsluga.length] + (i >= naziviUsluga.length ? ` ${Math.floor(i / naziviUsluga.length) + 1}` : ''),
-                cijena: faker.number.float({ min: 20, max: 500, fractionDigits: 2 }),
+                naziv: naziviUsluga[i % naziviUsluga.length] + 
+                       (i >= naziviUsluga.length ? ` ${Math.floor(i / naziviUsluga.length) + 1}` : ''),
+                cijena: faker.number.float({ min: 20, max: 500, precision: 0.01 }),
                 trajanje: faker.number.int({ min: 30, max: 480 }),
                 datumPokretanja: faker.date.soon().toISOString().split('T')[0]
             });
@@ -36,7 +52,7 @@ export default function GeneriranjePodataka() {
             await KlijentService.dodaj({
                 ime: faker.person.firstName(),
                 prezime: faker.person.lastName(),
-                telefon: faker.phone.number(),
+                telefon: faker.phone.number('+385 9# ### ####'),
                 email: faker.internet.email().toLowerCase(),
                 oib: faker.string.numeric(11)
             });
@@ -59,10 +75,10 @@ export default function GeneriranjePodataka() {
 
             await VoziloService.dodaj({
                 marka: marke[faker.number.int({ min: 0, max: marke.length - 1 })],
-                model: faker.vehicle.model(),
+                model: faker.vehicle.model() || 'Model X',
                 registracija: faker.vehicle.vrm(),
-                godiste: godiste, 
-                godinaProizvodnje: godiste, 
+                godiste: godiste,
+                godinaProizvodnje: godiste,
                 kilometri: faker.number.int({ min: 5000, max: 350000 }),
                 klijent: randomKlijent.sifra
             });
@@ -87,6 +103,7 @@ export default function GeneriranjePodataka() {
     const obrisiSve = async (Service, naziv) => {
         if (!window.confirm(`Jeste li sigurni da želite obrisati sve podatke za: ${naziv}?`)) return;
         setLoading(true);
+        setPoruka(null);
         try {
             const res = await Service.get();
             for (const stavka of res.data) {
@@ -95,6 +112,27 @@ export default function GeneriranjePodataka() {
             setPoruka({ tip: 'success', tekst: `Uspješno obrisano: ${naziv}` });
         } catch (error) {
             setPoruka({ tip: 'danger', tekst: 'Greška pri brisanju: ' + error.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // --- PRETAKANJE PODATAKA ---
+
+    const handleMemorijaULocalStorage = async () => {
+        if (!window.confirm('Jeste li sigurni da želite pretočiti podatke iz memorije u localStorage?')) return;
+
+        setLoading(true);
+        setPoruka(null);
+
+        try {
+            localStorage.setItem(PrefixStorage.USLUGE, JSON.stringify(uslugeMemorija.usluge || uslugeMemorija));
+            localStorage.setItem(PrefixStorage.KLIJENTI, JSON.stringify(klijentiMemorija.klijenti || klijentiMemorija));
+            localStorage.setItem(PrefixStorage.VOZILO, JSON.stringify(vozilaMemorija.vozila || vozilaMemorija));
+
+            setPoruka({ tip: 'success', tekst: 'Podaci uspješno pretočeni iz memorije u localStorage!' });
+        } catch (error) {
+            setPoruka({ tip: 'danger', tekst: 'Greška pri pretakanju: ' + error.message });
         } finally {
             setLoading(false);
         }
@@ -117,6 +155,7 @@ export default function GeneriranjePodataka() {
                         </Button>
                     </Form.Group>
                 </Col>
+
                 <Col md={4}>
                     <Form.Group className="mb-3 border p-3 rounded shadow-sm">
                         <Form.Label className="fw-bold">Klijenti</Form.Label>
@@ -126,6 +165,7 @@ export default function GeneriranjePodataka() {
                         </Button>
                     </Form.Group>
                 </Col>
+
                 <Col md={4}>
                     <Form.Group className="mb-3 border p-3 rounded shadow-sm">
                         <Form.Label className="fw-bold">Vozila</Form.Label>
@@ -145,6 +185,25 @@ export default function GeneriranjePodataka() {
                 <Col md={4}><Button variant="outline-danger" onClick={() => obrisiSve(KlijentService, 'Klijente')} disabled={loading} className="w-100 mb-2">Obriši sve klijente</Button></Col>
                 <Col md={4}><Button variant="outline-danger" onClick={() => obrisiSve(VoziloService, 'Vozila')} disabled={loading} className="w-100 mb-2">Obriši sva vozila</Button></Col>
             </Row>
+
+            {DATA_SOURCE !== 'memorija' && (
+                <div className="mt-5">
+                    <hr />
+                    <h3>Migracija podataka</h3>
+                    <Row className="mt-3">
+                        <Col md={6}>
+                            <Button variant="success" onClick={handleMemorijaULocalStorage} disabled={loading} className="w-100 mb-2">
+                                {loading ? 'Pretakanje...' : 'Iz memorije u localStorage'}
+                            </Button>
+                        </Col>
+                        <Col md={6}>
+                            <Button variant="outline-success" disabled className="w-100 mb-2">
+                                Iz memorije u Firebase (uskoro)
+                            </Button>
+                        </Col>
+                    </Row>
+                </div>
+            )}
         </Container>
     );
 }

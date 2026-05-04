@@ -35,3 +35,7 @@ export const klijenti = [
         oib: '33445566778'
     }
 ]
+
+export default{
+    klijenti
+}
