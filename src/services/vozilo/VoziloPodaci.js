@@ -5,7 +5,7 @@ export const vozila = [
         marka: 'Volkswagen',
         model: 'Golf',
         godiste: 2020,
-        prijedeniKilometri: 45000
+        kilometri: 45000
     },
     {
         sifra: 2,
@@ -13,7 +13,7 @@ export const vozila = [
         marka: 'Skoda',
         model: 'Octavia',
         godiste: 2018,
-        prijedeniKilometri: 120000
+        kilometri: 120000
     },
     {
         sifra: 3,
@@ -21,7 +21,7 @@ export const vozila = [
         marka: 'Renault',
         model: 'Clio',
         godiste: 2021,
-        prijedeniKilometri: 15500
+        kilometri: 15500
     },
     {
         sifra: 4,
@@ -29,7 +29,7 @@ export const vozila = [
         marka: 'Opel',
         model: 'Astra',
         godiste: 2015,
-        prijedeniKilometri: 185000
+        kilometri: 185000
     },
     {
         sifra: 5,
@@ -37,7 +37,7 @@ export const vozila = [
         marka: 'Toyota',
         model: 'Yaris',
         godiste: 2022,
-        prijedeniKilometri: 8000
+        kilometri: 8000
     }
 ]
 export default{
