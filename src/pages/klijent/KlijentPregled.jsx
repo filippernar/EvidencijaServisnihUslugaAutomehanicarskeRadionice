@@ -4,64 +4,65 @@ import { Button, Table } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { RouteNames } from "../../constants"
 
-export default function KlijentPregled(){
+export default function KlijentPregled() {
 
     const navigate = useNavigate()
 
     const [klijenti, setKlijenti] = useState([])
-    const [sortField, setSortField] = useState("prezime") 
-    const [sortOrder, setSortOrder] = useState("asc")     
+    const [sortField, setSortField] = useState("prezime")
+    const [sortOrder, setSortOrder] = useState("asc")
 
-    useEffect(()=>{
+    useEffect(() => {
         ucitajKlijente()
-    },[])
+    }, [])
 
     async function ucitajKlijente() {
-        await KlijentService.get().then((odgovor)=>{
-            if(!odgovor.success){
-                alert('Nije implementiran servis')
+        await KlijentService.get().then((odgovor) => {
+            if (!odgovor.success) {
+                alert("Nije implementiran servis")
                 return
             }
 
-            setKlijenti(sortiraj(odgovor.data, sortField, sortOrder))
+            // inicijalno sortiranje po prezimenu uzlazno
+            const sortirani = sortiraj(odgovor.data, "prezime", "asc")
+            setKlijenti(sortirani)
+            setSortField("prezime")
+            setSortOrder("asc")
         })
     }
 
-    function sortiraj(podaci) {
-    podaci.sort((a, b) => {
-        // Dodajemo '|| ""' kako bi spriječili pucanje ako je ime ili prezime null/undefined
-        const prezimeA = (a.prezime || "").toLowerCase();
-        const prezimeB = (b.prezime || "").toLowerCase();
-        const imeA = (a.ime || "").toLowerCase();
-        const imeB = (b.ime || "").toLowerCase();
+    function sortiraj(podaci, field, order) {
+        if (!Array.isArray(podaci)) {
+            return []
+        }
 
-        if (prezimeA < prezimeB) return -1;
-        if (prezimeA > prezimeB) return 1;
-        
-        if (imeA < imeB) return -1;
-        if (imeA > imeB) return 1;
-        
-        return 0;
-    });
-    return podaci;
-}
+        const sorted = [...podaci].sort((a, b) => {
+            const valA = (a?.[field] ?? "").toString().toLowerCase()
+            const valB = (b?.[field] ?? "").toString().toLowerCase()
+
+            if (valA < valB) return order === "asc" ? -1 : 1
+            if (valA > valB) return order === "asc" ? 1 : -1
+            return 0
+        })
+
+        return sorted
+    }
 
     function handleSort(field) {
         let newOrder = sortOrder
 
         if (field === sortField) {
             newOrder = sortOrder === "asc" ? "desc" : "asc"
-            setSortOrder(newOrder)
         } else {
-            setSortField(field)
             newOrder = "asc"
-            setSortOrder("asc")
         }
 
-        setKlijenti(sortiraj(klijenti, field, newOrder))
+        setSortField(field)
+        setSortOrder(newOrder)
+
+        setKlijenti((prev) => sortiraj(prev, field, newOrder))
     }
 
-    //OBA STUPCA IMAJU ▲ ILI ▼
     function ikona(field) {
         const isActive = field === sortField
 
@@ -69,58 +70,78 @@ export default function KlijentPregled(){
             return sortOrder === "asc" ? " ▲" : " ▼"
         }
 
-        // neaktivni stupac prikazuje SUPROTNU strelicu
+        // neaktivni stupac prikazuje suprotnu strelicu
         return sortOrder === "asc" ? " ▼" : " ▲"
     }
 
     async function brisanje(sifra) {
-        if (!confirm('Sigurno obrisati?')) return;
-        await KlijentService.obrisi(sifra);
-        await KlijentService.get().then((odgovor)=>{
+        if (!confirm("Sigurno obrisati?")) return
+
+        await KlijentService.obrisi(sifra)
+
+        await KlijentService.get().then((odgovor) => {
+            if (!odgovor.success) {
+                alert("Greška kod brisanja")
+                return
+            }
+
             setKlijenti(sortiraj(odgovor.data, sortField, sortOrder))
         })
     }
 
-    return(
+    return (
         <>
-        <Link to={RouteNames.KLIJENT_NOVI}
-        className="btn btn-success w-100 my-3">
-            Dodavanje novog klijenta
-        </Link>
-        <Table striped bordered hover>
-            <thead>
-                <tr>
-                    <th onClick={() => handleSort("ime")} style={{cursor:"pointer"}}>
-                        Ime{ikona("ime")}
-                    </th>
-                    <th onClick={() => handleSort("prezime")} style={{cursor:"pointer"}}>
-                        Prezime{ikona("prezime")}
-                    </th>
-                    <th>Email</th>
-                    <th>OIB</th>
-                    <th>Akcija</th>
-                </tr>
-            </thead>
-            <tbody>
-                {klijenti && klijenti.map((klijent)=>(
-                    <tr key={klijent.sifra}>
-                        <td>{klijent.ime}</td>
-                        <td>{klijent.prezime}</td>
-                        <td>{klijent.email}</td>
-                        <td>{klijent.oib}</td>
-                        <td>
-                            <Button onClick={()=>{navigate(`/klijenti/${klijent.sifra}`)}}>
-                                Promjeni
-                            </Button>
-                            &nbsp;&nbsp;
-                            <Button variant="danger" onClick={() => brisanje(klijent.sifra)}>
-                                Obriši
-                            </Button>
-                        </td>
+            <Link
+                to={RouteNames.KLIJENT_NOVI}
+                className="btn btn-success w-100 my-3"
+            >
+                Dodavanje novog klijenta
+            </Link>
+
+            <Table striped bordered hover>
+                <thead>
+                    <tr>
+                        <th
+                            onClick={() => handleSort("ime")}
+                            style={{ cursor: "pointer" }}
+                        >
+                            Ime{ikona("ime")}
+                        </th>
+                        <th
+                            onClick={() => handleSort("prezime")}
+                            style={{ cursor: "pointer" }}
+                        >
+                            Prezime{ikona("prezime")}
+                        </th>
+                        <th>Email</th>
+                        <th>OIB</th>
+                        <th>Akcija</th>
                     </tr>
-                ))}
-            </tbody>
-        </Table>
+                </thead>
+
+                <tbody>
+                    {klijenti && klijenti.map((klijent) => (
+                        <tr key={klijent.sifra}>
+                            <td>{klijent.ime}</td>
+                            <td>{klijent.prezime}</td>
+                            <td>{klijent.email}</td>
+                            <td>{klijent.oib}</td>
+                            <td>
+                                <Button onClick={() => navigate(`/klijenti/${klijent.sifra}`)}>
+                                    Promjeni
+                                </Button>
+                                &nbsp;&nbsp;
+                                <Button
+                                    variant="danger"
+                                    onClick={() => brisanje(klijent.sifra)}
+                                >
+                                    Obriši
+                                </Button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
         </>
     )
 }
