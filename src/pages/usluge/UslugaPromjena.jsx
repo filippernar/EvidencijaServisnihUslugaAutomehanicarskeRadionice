@@ -143,7 +143,7 @@ export default function UslugaPromjena(){
                                         <Form.Label className="fw-bold">Cijena (€)</Form.Label>
                                         <Form.Control
                                             type="number"
-                                            step="0.01"
+                                            step="any"
                                             name="cijena"
                                             defaultValue={usluga.cijena}
                                             isInvalid={!!errors.cijena}
