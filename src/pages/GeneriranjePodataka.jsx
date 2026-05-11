@@ -197,9 +197,7 @@ export default function GeneriranjePodataka() {
                             </Button>
                         </Col>
                         <Col md={6}>
-                            <Button variant="outline-success" disabled className="w-100 mb-2">
-                                Iz memorije u Firebase (uskoro)
-                            </Button>
+                            
                         </Col>
                     </Row>
                 </div>
