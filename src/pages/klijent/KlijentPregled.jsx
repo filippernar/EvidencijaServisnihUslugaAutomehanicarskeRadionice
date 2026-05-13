@@ -89,6 +89,17 @@ export default function KlijentPregled() {
         })
     }
 
+    // -----------------------------
+    //  DODANO: prikaz poruke ako je lista prazna
+    // -----------------------------
+    if (klijenti.length === 0) {
+        return (
+            <div className="alert alert-info text-center my-4">
+                Idi na <strong>PROGRAMI → GENERIRAJ PODATKE</strong>
+            </div>
+        )
+    }
+
     return (
         <>
             <Link

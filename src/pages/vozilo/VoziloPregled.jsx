@@ -10,11 +10,7 @@ export default function VoziloPregled(){
     const navigate = useNavigate()
 
     const [vozila, setVozila] = useState([])
-
-    // Pretraga
     const [searchTerm, setSearchTerm] = useState("")
-
-    // Straničenje
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 5
 
@@ -40,7 +36,6 @@ export default function VoziloPregled(){
         })
     }
 
-    // 🔍 Filtriranje vozila
     const filtriranaVozila = vozila.filter(v => {
         const term = searchTerm.toLowerCase()
         return (
@@ -52,7 +47,6 @@ export default function VoziloPregled(){
         )
     })
 
-    // Izračun stranica
     const totalPages = Math.ceil(filtriranaVozila.length / pageSize)
 
     const prikazanaVozila = filtriranaVozila.slice(
@@ -67,7 +61,15 @@ export default function VoziloPregled(){
 
     function handleSearchChange(e) {
         setSearchTerm(e.target.value)
-        setCurrentPage(1) // reset na prvu stranicu
+        setCurrentPage(1)
+    }
+
+    if (vozila.length === 0) {
+        return (
+            <div className="alert alert-info text-center my-4">
+                Idi na <strong>PROGRAMI → GENERIRAJ PODATKE</strong>
+            </div>
+        )
     }
 
     return(
@@ -77,7 +79,6 @@ export default function VoziloPregled(){
             Dodavanje novog vozila
         </Link>
 
-        {/* Search bar */}
         <InputGroup className="mb-3">
             <InputGroup.Text><FaSearch /></InputGroup.Text>
             <Form.Control
@@ -121,7 +122,6 @@ export default function VoziloPregled(){
             </tbody>
         </Table>
 
-        {/* Pagination */}
         <Pagination className="justify-content-center">
             <Pagination.Prev 
                 onClick={() => promijeniStranicu(currentPage - 1)} 

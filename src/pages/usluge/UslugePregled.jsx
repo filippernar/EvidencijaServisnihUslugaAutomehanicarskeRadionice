@@ -11,8 +11,6 @@ export default function UslugePregled(){
 
     const [usluge, setUsluge] = useState([])
     const navigate = useNavigate();
-
-    // 🔥 Sortiranje samo po NAZIVU
     const [sortOrder, setSortOrder] = useState("asc")
 
     useEffect(()=>{
@@ -21,12 +19,10 @@ export default function UslugePregled(){
 
     async function ucitajUsluge() {
         await UslugeService.get().then((odgovor)=>{
-
             if(!odgovor.success){
                 alert('Nije implementiran servis')
                 return
             }
-
             setUsluge(sortiraj(odgovor.data, sortOrder))
         })
     }
@@ -35,7 +31,6 @@ export default function UslugePregled(){
         return [...lista].sort((a, b) => {
             const A = a.naziv.toLowerCase()
             const B = b.naziv.toLowerCase()
-
             if (A < B) return order === "asc" ? -1 : 1
             if (A > B) return order === "asc" ? 1 : -1
             return 0
@@ -48,7 +43,6 @@ export default function UslugePregled(){
         setUsluge(sortiraj(usluge, newOrder))
     }
 
-    // 🔥 Strelica uvijek prikazana
     function ikona() {
         return sortOrder === "asc" ? " ▲" : " ▼"
     }
@@ -59,6 +53,14 @@ export default function UslugePregled(){
         }
         await UslugeService.obrisi(sifra)
         ucitajUsluge()
+    }
+
+    if (usluge.length === 0) {
+        return (
+            <div className="alert alert-info text-center my-4">
+                Idi na <strong>PROGRAMI → GENERIRAJ PODATKE</strong>
+            </div>
+        )
     }
 
     return(
