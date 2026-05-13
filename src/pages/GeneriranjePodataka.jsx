@@ -23,9 +23,7 @@ export default function GeneriranjePodataka() {
     const [poruka, setPoruka] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => { 
-        document.title = 'Generiranje podataka, ' + IME_APLIKACIJE;
-    }, []);
+  
 
     // --- GENERATORI ---
 
