@@ -83,10 +83,20 @@ export default function KlijentNovi(){
                         name="email"
                         isInvalid={!!errors.email}
                         onFocus={() => ocistiGresku("email")}
+                        aria-required="true"
+                        aria-invalid={errors.email ? "true" : "false"}
+                        aria-describedby={errors.email ? "email-error" : "email-help"}
                     />
-                    <Form.Control.Feedback type="invalid">
-                        {errors.email}
-                    </Form.Control.Feedback>
+                    {!errors.email && (
+                        <Form.Text id="email-help" className="text-muted">
+                            Unesite valjanu email adresu (primjer: ime@domena.com)
+                        </Form.Text>
+                    )}
+                    {errors.email && (
+                        <Form.Text id="email-error" className="text-danger">
+                            {errors.email}
+                        </Form.Text>
+                    )}
                 </Form.Group>
 
                 <Form.Group controlId="oib" className="mt-2">
